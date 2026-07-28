@@ -380,54 +380,572 @@ type LoanCtx = { amount: number; term: number; rate: number; monthly: number; to
 type Form = {
   firstName: string; lastName: string; email: string; phone: string;
   income: number; employment: string; purpose: string;
-  fileName: string; consent: boolean;
+  consent: boolean;
+  idFront: File | null; idBack: File | null; selfie: File | null;
+  provider: "" | "M-Pesa" | "MTN MoMo" | "Airtel Money";
+  mobileNumber: string;
 };
+type Tier = {
+  id: string; name: string;
+  min_amount: number; max_amount: number;
+  min_term_months: number; max_term_months: number;
+  interest_rate: number;
+};
+
+const TOTAL_STEPS = 5;
+const STEP_TITLES = ["Personal", "Financial", "Identity", "Payment", "Review"];
 
 function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<Form>({
     firstName: "", lastName: "", email: "", phone: "",
     income: 5000, employment: "", purpose: "",
-    fileName: "", consent: false,
+    consent: false,
+    idFront: null, idBack: null, selfie: null,
+    provider: "", mobileNumber: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<"idle" | "processing" | "done">("idle");
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [tiers, setTiers] = useState<Tier[]>([]);
 
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const headingId = "wizard-title";
+  const descId = "wizard-desc";
+
+  // Focus trap + escape + body scroll lock
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKey);
+    const previouslyFocused = document.activeElement as HTMLElement | null;
     document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+
+    const focusables = () => {
+      const root = dialogRef.current;
+      if (!root) return [] as HTMLElement[];
+      return Array.from(
+        root.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter(el => el.offsetParent !== null || el.getClientRects().length > 0);
+    };
+
+    // initial focus on first field in the dialog
+    requestAnimationFrame(() => {
+      const list = focusables();
+      const target = list.find(el => el.tagName === "INPUT" || el.tagName === "SELECT") ?? list[0];
+      target?.focus();
+    });
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { e.stopPropagation(); onClose(); return; }
+      if (e.key !== "Tab") return;
+      const list = focusables();
+      if (list.length === 0) return;
+      const first = list[0];
+      const last = list[list.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && active === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+      previouslyFocused?.focus?.();
+    };
   }, [onClose]);
+
+  // Refocus first field / error on step change
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      const root = dialogRef.current;
+      if (!root) return;
+      const firstError = root.querySelector<HTMLElement>('[aria-invalid="true"]');
+      const firstField = root.querySelector<HTMLElement>('[data-step-first="true"]');
+      (firstError ?? firstField)?.focus();
+    });
+  }, [step]);
+
+  // Load loan tiers for live eligibility
+  useEffect(() => {
+    let cancelled = false;
+    supabase
+      .from("loan_tiers")
+      .select("id,name,min_amount,max_amount,min_term_months,max_term_months,interest_rate")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .then(({ data }) => { if (!cancelled && data) setTiers(data as Tier[]); });
+    return () => { cancelled = true; };
+  }, []);
 
   const update = <K extends keyof Form>(k: K, v: Form[K]) => setForm(f => ({ ...f, [k]: v }));
 
   const validate = (s: number) => {
     const e: Record<string, string> = {};
     if (s === 1) {
-      if (!form.firstName.trim()) e.firstName = "Required";
-      if (!form.lastName.trim()) e.lastName = "Required";
-      if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Valid email required";
-      if (!/^[+\d\s()-]{7,}$/.test(form.phone)) e.phone = "Valid phone required";
+      if (!form.firstName.trim()) e.firstName = "First name is required";
+      if (!form.lastName.trim()) e.lastName = "Last name is required";
+      if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Enter a valid email address";
+      if (!/^[+\d\s()-]{7,}$/.test(form.phone)) e.phone = "Enter a valid phone number";
     }
     if (s === 2) {
-      if (!form.employment) e.employment = "Please select";
-      if (!form.purpose) e.purpose = "Please select";
+      if (!form.employment) e.employment = "Select your employment status";
+      if (!form.purpose) e.purpose = "Select a loan purpose";
     }
     if (s === 3) {
-      if (!form.fileName) e.fileName = "Please upload a document";
-      if (!form.consent) e.consent = "Consent is required";
+      if (!form.idFront) e.idFront = "Upload the front of your ID";
+      if (!form.idBack) e.idBack = "Upload the back of your ID";
+      if (!form.selfie) e.selfie = "Upload a selfie for identity check";
+      if (!form.consent) e.consent = "You must consent to identity verification";
+    }
+    if (s === 4) {
+      if (!form.provider) e.provider = "Choose a mobile money provider";
+      if (!/^\+?\d[\d\s-]{7,}$/.test(form.mobileNumber)) e.mobileNumber = "Enter a valid mobile money number";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const next = () => { if (validate(step)) setStep(s => Math.min(4, s + 1)); };
+  const next = () => { if (validate(step)) setStep(s => Math.min(TOTAL_STEPS, s + 1)); };
   const back = () => setStep(s => Math.max(1, s - 1));
 
-  const submit = () => {
+  const uploadOne = async (file: File, appId: string, tag: string) => {
+    const ext = file.name.split(".").pop() || "bin";
+    const path = `${appId}/${tag}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("application-uploads")
+      .upload(path, file, { contentType: file.type, upsert: false });
+    if (error) throw error;
+    return path;
+  };
+
+  const submit = async () => {
+    setSubmitError(null);
     setStatus("processing");
-    setTimeout(() => setStatus("done"), 2000);
+    try {
+      const appId = crypto.randomUUID();
+      const [idFrontPath, idBackPath, selfiePath] = await Promise.all([
+        uploadOne(form.idFront!, appId, "id-front"),
+        uploadOne(form.idBack!, appId, "id-back"),
+        uploadOne(form.selfie!, appId, "selfie"),
+      ]);
+      const { error } = await supabase.from("loan_applications").insert({
+        id: appId,
+        first_name: form.firstName,
+        last_name: form.lastName,
+        email: form.email,
+        phone: form.phone,
+        amount: loan.amount,
+        term_months: loan.term,
+        rate: loan.rate,
+        monthly_payment: Math.round(loan.monthly * 100) / 100,
+        monthly_income: form.income,
+        employment: form.employment,
+        purpose: form.purpose,
+        id_front_path: idFrontPath,
+        id_back_path: idBackPath,
+        selfie_path: selfiePath,
+        mobile_provider: form.provider,
+        mobile_number: form.mobileNumber,
+      });
+      if (error) throw error;
+      setStatus("done");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setSubmitError(msg);
+      setStatus("idle");
+    }
+  };
+
+  const eligibleTiers = useMemo(() => {
+    return tiers.map(t => {
+      const reasons: string[] = [];
+      if (loan.amount < t.min_amount) reasons.push(`Increase amount to ≥ ${money(t.min_amount)}`);
+      if (loan.amount > t.max_amount) reasons.push(`Reduce amount to ≤ ${money(t.max_amount)}`);
+      if (loan.term < t.min_term_months) reasons.push(`Term ≥ ${t.min_term_months} mo`);
+      if (loan.term > t.max_term_months) reasons.push(`Term ≤ ${t.max_term_months} mo`);
+      return { ...t, eligible: reasons.length === 0, reasons };
+    });
+  }, [tiers, loan.amount, loan.term]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-6">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} aria-hidden="true" />
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={headingId}
+        aria-describedby={descId}
+        className="relative w-full max-w-3xl overflow-hidden rounded-t-3xl sm:rounded-3xl glass p-0 shadow-2xl rise"
+      >
+        <div className="flex items-center justify-between border-b border-white/5 px-6 py-4">
+          <div>
+            <div id={descId} className="text-xs uppercase tracking-widest text-indigo-400">Application</div>
+            <h2 id={headingId} className="text-lg font-semibold">
+              Step {status === "done" ? TOTAL_STEPS : step} of {TOTAL_STEPS} · {STEP_TITLES[(status === "done" ? TOTAL_STEPS : step) - 1]}
+            </h2>
+          </div>
+          <button onClick={onClose} aria-label="Close application" className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/5 hover:bg-white/10">
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="px-6 pt-4">
+          <div
+            className="h-1.5 w-full overflow-hidden rounded-full bg-white/10"
+            role="progressbar"
+            aria-valuemin={0} aria-valuemax={TOTAL_STEPS}
+            aria-valuenow={status === "done" ? TOTAL_STEPS : step}
+            aria-label="Application progress"
+          >
+            <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-emerald-500 transition-all duration-500"
+                 style={{ width: `${(status === "done" ? TOTAL_STEPS : step) / TOTAL_STEPS * 100}%` }} />
+          </div>
+        </div>
+
+        {/* Live eligibility banner */}
+        {status === "idle" && tiers.length > 0 && (
+          <div className="mx-6 mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-semibold uppercase tracking-widest text-indigo-400">
+                Live eligibility · {money(loan.amount)} / {loan.term} mo
+              </div>
+              <div className="text-xs text-[color:var(--color-muted)]" aria-live="polite">
+                {eligibleTiers.filter(t => t.eligible).length} of {eligibleTiers.length} tiers match
+              </div>
+            </div>
+            <ul className="mt-3 flex flex-wrap gap-2" role="list">
+              {eligibleTiers.map(t => (
+                <li key={t.id}
+                  title={t.eligible ? `Eligible — ${t.interest_rate}% APR` : t.reasons.join(" · ")}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs",
+                    t.eligible
+                      ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-300"
+                      : "border-white/10 bg-white/5 text-white/50",
+                  )}
+                >
+                  {t.eligible ? <Check className="h-3 w-3" aria-hidden="true" /> : <AlertCircle className="h-3 w-3" aria-hidden="true" />}
+                  {t.name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {submitError && (
+          <div role="alert" className="mx-6 mt-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+            {submitError}
+          </div>
+        )}
+
+        <div className="max-h-[60vh] overflow-y-auto px-6 py-6">
+          {status === "processing" && <ProcessingView />}
+          {status === "done" && <SuccessView onClose={onClose} />}
+
+          {status === "idle" && step === 1 && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field id="firstName" label="First name" icon={<User className="h-4 w-4" />} error={errors.firstName}>
+                <input id="firstName" data-step-first="true" value={form.firstName}
+                  onChange={e => update("firstName", e.target.value)}
+                  className={inputCls(errors.firstName)} placeholder="Jane"
+                  aria-invalid={!!errors.firstName} aria-describedby={errors.firstName ? "firstName-err" : undefined}
+                  autoComplete="given-name" />
+              </Field>
+              <Field id="lastName" label="Last name" icon={<User className="h-4 w-4" />} error={errors.lastName}>
+                <input id="lastName" value={form.lastName}
+                  onChange={e => update("lastName", e.target.value)}
+                  className={inputCls(errors.lastName)} placeholder="Doe"
+                  aria-invalid={!!errors.lastName} aria-describedby={errors.lastName ? "lastName-err" : undefined}
+                  autoComplete="family-name" />
+              </Field>
+              <Field id="email" label="Email" icon={<Mail className="h-4 w-4" />} error={errors.email} full>
+                <input id="email" type="email" value={form.email}
+                  onChange={e => update("email", e.target.value)}
+                  className={inputCls(errors.email)} placeholder="jane@example.com"
+                  aria-invalid={!!errors.email} aria-describedby={errors.email ? "email-err" : undefined}
+                  autoComplete="email" inputMode="email" />
+              </Field>
+              <Field id="phone" label="Phone" icon={<Phone className="h-4 w-4" />} error={errors.phone} full>
+                <input id="phone" value={form.phone}
+                  onChange={e => update("phone", e.target.value)}
+                  className={inputCls(errors.phone)} placeholder="+260 97 000 1234"
+                  aria-invalid={!!errors.phone} aria-describedby={errors.phone ? "phone-err" : undefined}
+                  autoComplete="tel" inputMode="tel" />
+              </Field>
+            </div>
+          )}
+
+          {status === "idle" && step === 2 && (
+            <div className="space-y-6">
+              <div>
+                <div className="flex items-baseline justify-between">
+                  <label htmlFor="income" className="text-sm text-[color:var(--color-muted)]">Monthly income</label>
+                  <span className="text-lg font-semibold tabular-nums">{money(form.income)}</span>
+                </div>
+                <input id="income" data-step-first="true" type="range" min={1000} max={30000} step={500} value={form.income}
+                  onChange={e => update("income", Number(e.target.value))}
+                  className="slider mt-3"
+                  aria-valuemin={1000} aria-valuemax={30000} aria-valuenow={form.income}
+                  style={{ ["--val" as string]: `${((form.income - 1000) / 29000) * 100}%` }}
+                />
+              </div>
+              <Field id="employment" label="Employment status" icon={<Briefcase className="h-4 w-4" />} error={errors.employment} full>
+                <select id="employment" value={form.employment} onChange={e => update("employment", e.target.value)}
+                  className={inputCls(errors.employment)}
+                  aria-invalid={!!errors.employment} aria-describedby={errors.employment ? "employment-err" : undefined}>
+                  <option value="">Select…</option>
+                  <option>Employed</option><option>Self-Employed</option>
+                  <option>Freelancer</option><option>Student</option>
+                </select>
+              </Field>
+              <Field id="purpose" label="Purpose of loan" icon={<DollarSign className="h-4 w-4" />} error={errors.purpose} full>
+                <select id="purpose" value={form.purpose} onChange={e => update("purpose", e.target.value)}
+                  className={inputCls(errors.purpose)}
+                  aria-invalid={!!errors.purpose} aria-describedby={errors.purpose ? "purpose-err" : undefined}>
+                  <option value="">Select…</option>
+                  <option>Debt Consolidation</option><option>Business</option>
+                  <option>Home Improvement</option><option>Emergency</option>
+                </select>
+              </Field>
+            </div>
+          )}
+
+          {status === "idle" && step === 3 && (
+            <div className="space-y-4">
+              <FileDrop id="idFront" label="ID — front" file={form.idFront}
+                onFile={f => update("idFront", f)} error={errors.idFront} first />
+              <FileDrop id="idBack" label="ID — back" file={form.idBack}
+                onFile={f => update("idBack", f)} error={errors.idBack} />
+              <FileDrop id="selfie" label="Selfie" file={form.selfie}
+                onFile={f => update("selfie", f)} error={errors.selfie} />
+              <label className="flex items-start gap-3 text-sm">
+                <input type="checkbox" checked={form.consent} onChange={e => update("consent", e.target.checked)}
+                  aria-invalid={!!errors.consent} aria-describedby={errors.consent ? "consent-err" : undefined}
+                  className="mt-1 h-4 w-4 rounded border-white/20 accent-indigo-500" />
+                <span className="text-[color:var(--color-muted)]">
+                  I consent to Lendflow verifying my identity and reviewing my credit profile.
+                </span>
+              </label>
+              {errors.consent && <p id="consent-err" role="alert" className="text-sm text-red-400">{errors.consent}</p>}
+            </div>
+          )}
+
+          {status === "idle" && step === 4 && (
+            <div className="space-y-5">
+              <fieldset>
+                <legend className="mb-2 text-xs font-medium uppercase tracking-widest text-[color:var(--color-muted)]">
+                  Mobile money provider
+                </legend>
+                <div className="grid gap-3 sm:grid-cols-3" role="radiogroup"
+                  aria-invalid={!!errors.provider} aria-describedby={errors.provider ? "provider-err" : undefined}>
+                  {(["M-Pesa", "MTN MoMo", "Airtel Money"] as const).map((p, i) => (
+                    <label key={p} className={cn(
+                      "flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition",
+                      form.provider === p
+                        ? "border-indigo-400/60 bg-indigo-500/10"
+                        : "border-white/10 bg-white/[0.03] hover:bg-white/[0.06]",
+                    )}>
+                      <input type="radio" name="provider" value={p}
+                        data-step-first={i === 0 ? "true" : undefined}
+                        checked={form.provider === p}
+                        onChange={() => update("provider", p)}
+                        className="sr-only" />
+                      <Smartphone className="h-4 w-4 text-indigo-400" aria-hidden="true" />
+                      <span className="font-medium">{p}</span>
+                    </label>
+                  ))}
+                </div>
+                {errors.provider && <p id="provider-err" role="alert" className="mt-2 text-sm text-red-400">{errors.provider}</p>}
+              </fieldset>
+              <Field id="mobileNumber" label="Mobile money number" icon={<Phone className="h-4 w-4" />} error={errors.mobileNumber} full>
+                <input id="mobileNumber" value={form.mobileNumber}
+                  onChange={e => update("mobileNumber", e.target.value)}
+                  className={inputCls(errors.mobileNumber)} placeholder="+260 97 000 1234"
+                  aria-invalid={!!errors.mobileNumber} aria-describedby={errors.mobileNumber ? "mobileNumber-err" : undefined}
+                  autoComplete="tel" inputMode="tel" />
+              </Field>
+              <p className="text-xs text-[color:var(--color-muted)]">
+                Repayments and disbursements will use this number. You'll approve each transaction with a prompt on your phone.
+              </p>
+            </div>
+          )}
+
+          {status === "idle" && step === 5 && (
+            <div className="space-y-6">
+              <div className="glass p-5">
+                <div className="text-xs uppercase tracking-widest text-indigo-400">Your Lendflow loan</div>
+                <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  <ReviewItem label="Amount" value={money(loan.amount)} />
+                  <ReviewItem label="Term" value={`${loan.term} mo`} />
+                  <ReviewItem label="Rate" value={`${loan.rate}%`} />
+                  <ReviewItem label="Monthly" value={money(loan.monthly)} />
+                </div>
+              </div>
+              <div className="glass p-5">
+                <div className="text-xs uppercase tracking-widest text-indigo-400">Applicant</div>
+                <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
+                  <ReviewItem label="Name" value={`${form.firstName} ${form.lastName}`} />
+                  <ReviewItem label="Email" value={form.email} />
+                  <ReviewItem label="Phone" value={form.phone} />
+                  <ReviewItem label="Income" value={money(form.income) + "/mo"} />
+                  <ReviewItem label="Employment" value={form.employment} />
+                  <ReviewItem label="Purpose" value={form.purpose} />
+                </div>
+              </div>
+              <div className="glass p-5">
+                <div className="text-xs uppercase tracking-widest text-indigo-400">Payment</div>
+                <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
+                  <ReviewItem label="Provider" value={form.provider} />
+                  <ReviewItem label="Mobile number" value={form.mobileNumber} />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {status === "idle" && (
+          <div className="flex items-center justify-between border-t border-white/5 px-6 py-4">
+            <button onClick={back} disabled={step === 1}
+              className="rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-white/80 transition hover:bg-white/10 disabled:opacity-40">
+              Back
+            </button>
+            {step < TOTAL_STEPS ? (
+              <button onClick={next}
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 hover:from-indigo-400 hover:to-violet-400">
+                Continue <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </button>
+            ) : (
+              <button onClick={submit}
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 hover:from-emerald-400 hover:to-teal-400">
+                Submit application <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FileDrop({ id, label, file, onFile, error, first }: {
+  id: string; label: string; file: File | null;
+  onFile: (f: File | null) => void; error?: string; first?: boolean;
+}) {
+  const [drag, setDrag] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const errId = error ? `${id}-err` : undefined;
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1.5 flex items-center gap-1.5 text-xs font-medium uppercase tracking-widest text-[color:var(--color-muted)]">
+        <Upload className="h-3.5 w-3.5" aria-hidden="true" />{label}
+      </label>
+      <div
+        onDragOver={e => { e.preventDefault(); setDrag(true); }}
+        onDragLeave={() => setDrag(false)}
+        onDrop={e => {
+          e.preventDefault(); setDrag(false);
+          const f = e.dataTransfer.files?.[0]; if (f) onFile(f);
+        }}
+        onClick={() => inputRef.current?.click()}
+        onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); inputRef.current?.click(); } }}
+        role="button" tabIndex={0}
+        aria-describedby={errId}
+        className={cn(
+          "flex cursor-pointer items-center justify-between rounded-2xl border-2 border-dashed px-4 py-4 text-sm transition focus:outline-none focus:ring-2 focus:ring-indigo-400/40",
+          error ? "border-red-500/60 bg-red-500/5"
+            : drag ? "border-indigo-400/70 bg-indigo-500/10"
+            : "border-white/15 bg-white/[0.03] hover:bg-white/[0.06]",
+        )}
+      >
+        <div className="flex items-center gap-3">
+          <Upload className="h-5 w-5 text-indigo-400" aria-hidden="true" />
+          <div>
+            <div className="font-medium">{file ? file.name : "Drop file or click to browse"}</div>
+            <div className="text-xs text-[color:var(--color-muted)]">
+              {file ? `${(file.size / 1024).toFixed(0)} KB` : "PNG, JPG, or PDF up to 10MB"}
+            </div>
+          </div>
+        </div>
+        {file && <Check className="h-5 w-5 text-emerald-400" aria-hidden="true" />}
+      </div>
+      <input ref={inputRef} id={id} data-step-first={first ? "true" : undefined}
+        type="file" className="sr-only" accept="image/*,.pdf"
+        aria-invalid={!!error} aria-describedby={errId}
+        onChange={e => onFile(e.target.files?.[0] || null)} />
+      {error && <p id={errId} role="alert" className="mt-1 text-xs text-red-400">{error}</p>}
+    </div>
+  );
+}
+
+function ProcessingView() {
+  return (
+    <div className="flex flex-col items-center justify-center py-16" role="status" aria-live="polite">
+      <Loader className="h-12 w-12 text-indigo-400 spin" aria-hidden="true" />
+      <div className="mt-6 text-lg font-semibold">Submitting your application…</div>
+      <div className="mt-1 text-sm text-[color:var(--color-muted)]">Uploading documents and preparing your file</div>
+    </div>
+  );
+}
+
+function SuccessView({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-14 text-center" role="status" aria-live="polite">
+      <div className="grid h-16 w-16 place-items-center rounded-full bg-emerald-500/15 ring-2 ring-emerald-500/40">
+        <svg viewBox="0 0 24 24" className="h-8 w-8 text-emerald-400" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path className="check-path" d="M4 12l5 5 11-11" />
+        </svg>
+      </div>
+      <div className="mt-5 text-2xl font-bold">Application submitted!</div>
+      <p className="mt-2 max-w-sm text-sm text-[color:var(--color-muted)]">
+        We're reviewing your details and identity documents. You'll receive an update and a mobile money prompt within 24 hours.
+      </p>
+      <button onClick={onClose}
+        className="mt-6 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 hover:from-indigo-400 hover:to-violet-400">
+        Back to Lendflow
+      </button>
+    </div>
+  );
+}
+
+function Field({ id, label, icon, error, children, full }: { id?: string; label: string; icon?: React.ReactNode; error?: string; children: React.ReactNode; full?: boolean }) {
+  return (
+    <div className={cn(full && "sm:col-span-2")}>
+      <label htmlFor={id} className="mb-1.5 flex items-center gap-1.5 text-xs font-medium uppercase tracking-widest text-[color:var(--color-muted)]">
+        {icon}{label}
+      </label>
+      {children}
+      {error && <p id={id ? `${id}-err` : undefined} role="alert" className="mt-1 text-xs text-red-400">{error}</p>}
+    </div>
+  );
+}
+
+function ReviewItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-xs text-[color:var(--color-muted)]">{label}</div>
+      <div className="mt-0.5 font-semibold">{value || "—"}</div>
+    </div>
+  );
+}
+
+function inputCls(error?: string) {
+  return cn(
+    "w-full rounded-xl border bg-white/[0.03] px-3.5 py-3 text-sm outline-none transition placeholder:text-white/30",
+    "focus:border-indigo-400/60 focus:ring-2 focus:ring-indigo-400/20",
+    error ? "border-red-500/60 ring-2 ring-red-500/20" : "border-white/10",
+  );
+}
+
+/* ---------------- Data ---------------- */
+const faqs = [
+  { q: "How fast do I get funds?", a: "Most approved borrowers receive funds within 24 hours of signing their agreement — many the same day." },
+  { q: "What are the eligibility criteria?", a: "You must be 18+, a legal resident, have a steady income, and a bank account. A soft credit check confirms your rate without affecting your score." },
+  { q: "Can I pay off my loan early?", a: "Yes. Lendflow never charges prepayment penalties. Pay any amount, any time, right from the app." },
+  { q: "Are there any hidden fees?", a: "No. What you see in the calculator is what you pay. No origination or servicing fees, ever." },
+];
+
+const partners = ["NORTHBANK", "MERIDIAN", "APEX CAPITAL", "SILVERLINE", "HORIZON", "OAKRIDGE", "PRIMEBANK"];
   };
 
   return (
