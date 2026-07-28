@@ -3,9 +3,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight, Sun, Moon, Waves, Zap, CalendarClock, ShieldCheck,
   ChevronDown, User, Mail, Phone, Briefcase, Upload, CheckCircle2,
-  DollarSign, Star, TrendingUp, Loader, Check,
+  DollarSign, Star, TrendingUp, Loader, Check, Smartphone, X, AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({
