@@ -366,7 +366,13 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                   <ReviewItem label="Wallet" value={form.msisdn} />
                 </div>
               </div>
+              {submitError && (
+                <p data-testid="submit-error" className="field-error rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
+                  {submitError}
+                </p>
+              )}
             </div>
+
           )}
         </div>
 
