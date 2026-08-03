@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AppShell, KpiCard, StatusPill } from "@/components/AppShell";
-import { currentUser, listApplications, money, type Account, type Application } from "@/lib/demo-auth";
+import { currentUser, listApplications, money, computeLoan, type Account, type Application } from "@/lib/demo-auth";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -89,7 +89,7 @@ function ClientDashboard() {
                 Array.from({ length: Math.min(a.term, 6) }).map((_, i) => (
                   <li key={a.id + i} className="flex items-center justify-between rounded-xl bg-[color:var(--color-sky)] px-4 py-2.5">
                     <span className="text-[color:var(--color-muted)]">{a.id} · instalment {i + 1}</span>
-                    <span className="font-bold tabular-nums">{money(a.amount / a.term)}</span>
+                    <span className="font-bold tabular-nums">{money(computeLoan(a.amount, a.serviceFeePct, a.term).monthly)}</span>
                   </li>
                 )),
               )}
