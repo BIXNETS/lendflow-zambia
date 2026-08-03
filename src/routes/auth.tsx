@@ -22,36 +22,58 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { account } = useAccount();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
 
   const go = (role: string) => navigate({ to: role === "manager" ? "/manager" : "/dashboard" });
 
+  // Already signed in? Don't leave the user staring at a form that "does nothing".
+  useEffect(() => {
+    if (account) go(account.role);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account]);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setNotice("");
+
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !/^\S+@\S+\.\S+$/.test(cleanEmail)) return setError("Please enter a valid email address.");
+    if (!password) return setError("Please enter your password.");
+    if (mode === "signup") {
+      if (!name.trim()) return setError("Please enter your full name.");
+      if (password.length < 8) return setError("Password must be at least 8 characters.");
+    }
+
     setBusy(true);
     try {
       if (mode === "signin") {
-        const res = await signInAccount(email, password);
-        if (!res.ok) return setError(res.error);
+        const res = await signInAccount(cleanEmail, password);
+        if (!res.ok) return setError(friendly(res.error));
         go(res.account.role);
       } else {
-        if (!name.trim()) return setError("Please enter your full name.");
-        if (password.length < 6) return setError("Password must be at least 6 characters.");
-        const res = await signUpAccount({ name, email, password, phone });
-        if (!res.ok) return setError(res.error);
+        const res = await signUpAccount({ name, email: cleanEmail, password, phone });
+        if (!res.ok) {
+          if (/check your email/i.test(res.error)) return setNotice(res.error);
+          return setError(friendly(res.error));
+        }
         go(res.account.role);
       }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setBusy(false);
     }
   };
+
 
   const HIGHLIGHTS = [
     { icon: ShieldCheck, title: "Bank-grade security", body: "Your details are encrypted in transit and at rest." },
