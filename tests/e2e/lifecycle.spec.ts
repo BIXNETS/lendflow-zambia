@@ -18,23 +18,23 @@ function unique() {
 
 async function signUp(page: Page, creds: ReturnType<typeof unique>) {
   await page.goto("/auth");
-  await page.getByRole("button", { name: /Create account/i }).first().click();
-  await page.getByPlaceholder(/full name/i).fill("Joseph Banda");
-  await page.getByPlaceholder(/email/i).fill(creds.email);
-  await page.getByPlaceholder(/password/i).fill(creds.password);
-  const phone = page.getByPlaceholder(/phone/i);
-  if (await phone.count()) await phone.first().fill(creds.phone);
-  await page.getByRole("button", { name: /Create account|Sign up/i }).last().click();
+  await page.getByRole("button", { name: "New client" }).click();
+  await page.getByPlaceholder("Joseph Banda").fill("Joseph Banda");
+  await page.getByPlaceholder("+260 97 000 0000").fill(creds.phone);
+  await page.getByPlaceholder("you@example.com").fill(creds.email);
+  await page.getByPlaceholder("••••••••").fill(creds.password);
+  await page.locator('button[type="submit"]').click();
   await page.waitForURL("**/dashboard", { timeout: 30_000 });
 }
 
 async function signIn(page: Page, email: string, password: string, dest: string) {
   await page.goto("/auth");
-  await page.getByPlaceholder(/email/i).fill(email);
-  await page.getByPlaceholder(/password/i).fill(password);
-  await page.getByRole("button", { name: /^Sign in$/i }).last().click();
+  await page.getByPlaceholder("you@example.com").fill(email);
+  await page.getByPlaceholder("••••••••").fill(password);
+  await page.locator('button[type="submit"]').click();
   await page.waitForURL(`**${dest}`, { timeout: 30_000 });
 }
+
 
 async function uploadKyc(page: Page) {
   await page.goto("/kyc");
