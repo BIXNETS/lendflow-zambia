@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Brand } from "@/components/Brand";
-import { signInAccount, signUpAccount } from "@/lib/session";
+import { signInAccount, signUpAccount, useAccount } from "@/lib/session";
 import { inputCls } from "@/components/Wizard";
 import { cn } from "@/lib/utils";
 import { Clock, Lock, ShieldCheck } from "lucide-react";
