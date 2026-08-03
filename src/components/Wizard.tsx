@@ -142,9 +142,11 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                 <div className="text-xs font-bold uppercase tracking-widest text-[color:var(--color-leaf-dark)]">Service fee due now</div>
                 <div className="mt-1 text-3xl font-black">{money(loan.serviceFee)}</div>
                 <p className="mt-1 text-xs text-[color:var(--color-muted)]">
-                  {loan.pct}% of {money(loan.amount)}, paid once up front. Your loan then carries a flat 2.5% interest — you repay {money(Math.round(loan.amount * 1.025))} in total.
+                  {loan.pct}% of {money(loan.amount)}, paid once up front. Your loan then carries a flat {INTEREST_LABEL} interest — you repay {money(computeLoan(loan.amount, loan.pct, loan.term).totalRepayment)} in total.
                 </p>
               </div>
+              <Breakdown loan={loan} />
+
               <Field label="Mobile money provider" error={errors.provider} full>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {["MTN MoMo", "Airtel Money", "M-Pesa"].map(p => (
