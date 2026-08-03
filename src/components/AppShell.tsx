@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Brand } from "@/components/Brand";
-import { signOut, type Account } from "@/lib/demo-auth";
+import { type Account } from "@/lib/demo-auth";
+import { signOutAccount } from "@/lib/session";
 import { LogOut } from "lucide-react";
 
 export function AppShell({ user, subtitle, children }:
@@ -17,7 +18,7 @@ export function AppShell({ user, subtitle, children }:
               <div className="text-xs text-[color:var(--color-muted)]">{subtitle}</div>
             </div>
             <button
-              onClick={() => { signOut(); navigate({ to: "/auth" }); }}
+              onClick={async () => { await signOutAccount(); navigate({ to: "/auth" }); }}
               className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-line)] px-4 py-2 text-xs font-bold text-[color:var(--color-navy)] hover:bg-[color:var(--color-sky)]">
               <LogOut className="h-3.5 w-3.5" /> Sign out
             </button>

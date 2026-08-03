@@ -2,7 +2,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowRight, User, Mail, Phone, Smartphone, CheckCircle2, Loader } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { currentUser, money, saveApplication, computeLoan, type Application } from "@/lib/demo-auth";
+import { money, saveApplication, computeLoan, type Application } from "@/lib/demo-auth";
+import { useAccount } from "@/lib/session";
 import { LOAN_PRODUCTS, getProduct, fitToProduct, DEFAULT_PRODUCT_ID } from "@/lib/loan-products";
 
 export type LoanCtx = {
@@ -19,7 +20,7 @@ type Form = {
 
 export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }) {
   const navigate = useNavigate();
-  const user = typeof window !== "undefined" ? currentUser() : null;
+  const { account: user } = useAccount();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<Form>({
     firstName: user?.name.split(" ")[0] ?? "", lastName: user?.name.split(" ")[1] ?? "",
@@ -55,6 +56,18 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
     return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
   }, [onClose]);
 
+  // Prefill from the signed-in account once the session resolves.
+  useEffect(() => {
+    if (!user) return;
+    setForm(f => ({
+      ...f,
+      firstName: f.firstName || (user.name.split(" ")[0] ?? ""),
+      lastName: f.lastName || (user.name.split(" ")[1] ?? ""),
+      email: f.email || user.email,
+      phone: f.phone || (user.phone ?? ""),
+    }));
+  }, [user]);
+
   const update = <K extends keyof Form>(k: K, v: Form[K]) => setForm(f => ({ ...f, [k]: v }));
 
   const validate = (s: number) => {
@@ -64,6 +77,8 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
       if (!form.lastName.trim()) e.lastName = "Required";
       if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Valid email required";
       if (!/^[+\d\s()-]{7,}$/.test(form.phone)) e.phone = "Valid phone required";
+      if (!form.productId) e.productId = "Please select a service";
+      else if (product.soon) e.productId = `${product.title} is not lending yet — pick another service`;
     }
     if (s === 2) {
       if (!form.productId) e.productId = "Please select a service";
@@ -83,7 +98,19 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
     return Object.keys(e).length === 0;
   };
 
-  const next = () => { if (validate(step)) setStep(s => Math.min(4, s + 1)); };
+  /** Snap the requested figures onto the selected product's rules. */
+  const clampToProduct = () => {
+    const fit = fitToProduct(product, amount, term);
+    if (fit.amount !== amount) setAmount(fit.amount);
+    if (fit.term !== term) setTerm(fit.term);
+  };
+
+  const next = () => {
+    if (step === 1) clampToProduct();
+    if (!validate(step)) return;
+    if (step === 2) clampToProduct();
+    setStep(s => Math.min(4, s + 1));
+  };
   const back = () => setStep(s => Math.max(1, s - 1));
 
   const submit = () => {
@@ -101,7 +128,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
     setTimeout(() => { saveApplication(app); setStatus("done"); }, 1800);
   };
 
-  const stepTitle = ["Your details", "Choose your service", "Service fee payment", "Review & submit"][step - 1];
+  const stepTitle = ["Your details & service", "Amount & terms", "Service fee payment", "Review & submit"][step - 1];
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-6">
@@ -132,6 +159,25 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
 
           {status === "idle" && step === 1 && (
             <div className="grid gap-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <Field label="Service you are applying for" error={errors.productId} full>
+                  <select aria-label="Service" value={form.productId} onChange={e => update("productId", e.target.value)} className={inputCls(errors.productId)}>
+                    {LOAN_PRODUCTS.map(p => (
+                      <option key={p.id} value={p.id} disabled={p.soon}>
+                        {p.title}{p.soon ? " (coming soon)" : ` · ${p.serviceFeePct}% service fee`}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <div className="mt-4 rounded-2xl bg-[color:var(--color-mint)] p-5">
+                  <div className="text-sm font-bold text-[color:var(--color-navy)]">{product.title} rules</div>
+                  <div className="mt-3 grid grid-cols-3 gap-3">
+                    <ReviewItem label="Amount range" value={`${money(product.minAmount)} – ${money(product.maxAmount)}`} />
+                    <ReviewItem label="Term range" value={`${product.minTerm} – ${product.maxTerm} mo`} />
+                    <ReviewItem label="Service fee" value={`${product.serviceFeePct}%`} />
+                  </div>
+                </div>
+              </div>
               <Field label="First name" icon={<User className="h-4 w-4" />} error={errors.firstName}>
                 <input value={form.firstName} onChange={e => update("firstName", e.target.value)} className={inputCls(errors.firstName)} placeholder="Joseph" />
               </Field>
@@ -249,10 +295,10 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
               <div className="card p-5">
                 <div className="text-xs font-bold uppercase tracking-widest text-[color:var(--color-leaf-dark)]">Loan summary</div>
                 <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  <ReviewItem label="Amount" value={money(L.amount)} />
+                  <div data-testid="review-amount"><ReviewItem label="Amount" value={money(L.amount)} /></div>
                   <ReviewItem label="Term" value={`${L.term} mo`} />
-                  <ReviewItem label="Interest" value={L.rateLabel} />
-                  <ReviewItem label="Service fee" value={`${money(L.serviceFee)} (${L.pct}%)`} />
+                  <div data-testid="review-interest"><ReviewItem label="Interest" value={L.rateLabel} /></div>
+                  <div data-testid="review-fee"><ReviewItem label="Service fee" value={`${money(L.serviceFee)} (${L.pct}%)`} /></div>
                 </div>
               </div>
               <div className="card p-5">
@@ -261,7 +307,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                   <ReviewItem label="Name" value={`${form.firstName} ${form.lastName}`} />
                   <ReviewItem label="Email" value={form.email} />
                   <ReviewItem label="Phone" value={form.phone} />
-                  <ReviewItem label="Service" value={product.title} />
+                  <div data-testid="review-service"><ReviewItem label="Service" value={product.title} /></div>
                   <ReviewItem label="Provider" value={form.provider} />
                   <ReviewItem label="Wallet" value={form.msisdn} />
                 </div>
@@ -313,6 +359,10 @@ function SuccessView({ serviceFee, onDashboard }: { serviceFee: number; onDashbo
       <div className="mt-5 text-2xl font-black">Service fee of {money(serviceFee)} received!</div>
       <p className="mt-2 max-w-sm text-sm text-[color:var(--color-muted)]">
         Your application is now with a LendFlow manager. Track its status from your dashboard.
+      </p>
+      <p className="mt-4 rounded-2xl bg-[color:var(--color-mint)] px-5 py-3 text-sm font-bold text-[color:var(--color-navy)]">
+        Need help? Call or WhatsApp us on{" "}
+        <a href="tel:+254757860014" className="underline">+254757860014</a>
       </p>
       <button onClick={onDashboard} className="btn-primary mt-6 rounded-full px-6 py-2.5 text-sm font-bold">
         Go to my dashboard

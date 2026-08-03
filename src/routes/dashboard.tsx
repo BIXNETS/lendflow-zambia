@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AppShell, KpiCard, StatusPill } from "@/components/AppShell";
-import { currentUser, listApplications, money, computeLoan, type Account, type Application } from "@/lib/demo-auth";
+import { listApplications, money, computeLoan, type Account, type Application } from "@/lib/demo-auth";
+import { useAccount } from "@/lib/session";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -20,17 +21,17 @@ export const Route = createFileRoute("/dashboard")({
 
 function ClientDashboard() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<Account | null>(null);
+  const { account, loading } = useAccount();
   const [apps, setApps] = useState<Application[]>([]);
 
   useEffect(() => {
-    const u = currentUser();
-    if (!u) { navigate({ to: "/auth" }); return; }
-    if (u.role === "manager") { navigate({ to: "/manager" }); return; }
-    setUser(u);
-    setApps(listApplications().filter(a => a.email === u.email));
-  }, [navigate]);
+    if (loading) return;
+    if (!account) { navigate({ to: "/auth" }); return; }
+    if (account.role === "manager") { navigate({ to: "/manager" }); return; }
+    setApps(listApplications().filter(a => a.email === account.email));
+  }, [navigate, account, loading]);
 
+  const user: Account | null = account && account.role === "client" ? account : null;
   if (!user) return null;
 
   const approved = apps.filter(a => a.status === "approved");

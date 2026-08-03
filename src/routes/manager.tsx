@@ -2,9 +2,10 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AppShell, KpiCard, StatusPill } from "@/components/AppShell";
 import {
-  currentUser, listApplications, money, updateApplication,
+  listApplications, money, updateApplication,
   type Account, type Application,
 } from "@/lib/demo-auth";
+import { useAccount } from "@/lib/session";
 
 export const Route = createFileRoute("/manager")({
   head: () => ({
@@ -23,18 +24,18 @@ export const Route = createFileRoute("/manager")({
 
 function ManagerDashboard() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<Account | null>(null);
+  const { account, loading } = useAccount();
   const [apps, setApps] = useState<Application[]>([]);
   const [filter, setFilter] = useState<"all" | Application["status"]>("all");
 
   useEffect(() => {
-    const u = currentUser();
-    if (!u) { navigate({ to: "/auth" }); return; }
-    if (u.role !== "manager") { navigate({ to: "/dashboard" }); return; }
-    setUser(u);
+    if (loading) return;
+    if (!account) { navigate({ to: "/auth" }); return; }
+    if (account.role !== "manager") { navigate({ to: "/dashboard" }); return; }
     setApps(listApplications());
-  }, [navigate]);
+  }, [navigate, account, loading]);
 
+  const user: Account | null = account && account.role === "manager" ? account : null;
   if (!user) return null;
 
   const act = (id: string, status: Application["status"]) => {

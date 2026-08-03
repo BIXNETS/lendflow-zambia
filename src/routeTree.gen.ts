@@ -18,6 +18,7 @@ import { Route as FaqsRouteImport } from './routes/faqs'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as LoansRouteImport } from './routes/loans'
 import { Route as ManagerRouteImport } from './routes/manager'
+import { Route as ApiPublicSeedAdminRouteImport } from './routes/api/public/seed-admin'
 import { Route as ApiPublicMomoWebhookRouteImport } from './routes/api/public/momo/webhook'
 
 const IndexRoute = IndexRouteImport.update({
@@ -65,6 +66,11 @@ const ManagerRoute = ManagerRouteImport.update({
   path: '/manager',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSeedAdminRoute = ApiPublicSeedAdminRouteImport.update({
+  id: '/api/public/seed-admin',
+  path: '/api/public/seed-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicMomoWebhookRoute = ApiPublicMomoWebhookRouteImport.update({
   id: '/api/public/momo/webhook',
   path: '/api/public/momo/webhook',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/how-it-works': typeof HowItWorksRoute
   '/loans': typeof LoansRoute
   '/manager': typeof ManagerRoute
+  '/api/public/seed-admin': typeof ApiPublicSeedAdminRoute
   '/api/public/momo/webhook': typeof ApiPublicMomoWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/how-it-works': typeof HowItWorksRoute
   '/loans': typeof LoansRoute
   '/manager': typeof ManagerRoute
+  '/api/public/seed-admin': typeof ApiPublicSeedAdminRoute
   '/api/public/momo/webhook': typeof ApiPublicMomoWebhookRoute
 }
 export interface FileRoutesById {
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/how-it-works': typeof HowItWorksRoute
   '/loans': typeof LoansRoute
   '/manager': typeof ManagerRoute
+  '/api/public/seed-admin': typeof ApiPublicSeedAdminRoute
   '/api/public/momo/webhook': typeof ApiPublicMomoWebhookRoute
 }
 export interface FileRouteTypes {
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/loans'
     | '/manager'
+    | '/api/public/seed-admin'
     | '/api/public/momo/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/loans'
     | '/manager'
+    | '/api/public/seed-admin'
     | '/api/public/momo/webhook'
   id:
     | '__root__'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/loans'
     | '/manager'
+    | '/api/public/seed-admin'
     | '/api/public/momo/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -157,6 +169,7 @@ export interface RootRouteChildren {
   HowItWorksRoute: typeof HowItWorksRoute
   LoansRoute: typeof LoansRoute
   ManagerRoute: typeof ManagerRoute
+  ApiPublicSeedAdminRoute: typeof ApiPublicSeedAdminRoute
   ApiPublicMomoWebhookRoute: typeof ApiPublicMomoWebhookRoute
 }
 
@@ -225,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManagerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/seed-admin': {
+      id: '/api/public/seed-admin'
+      path: '/api/public/seed-admin'
+      fullPath: '/api/public/seed-admin'
+      preLoaderRoute: typeof ApiPublicSeedAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/momo/webhook': {
       id: '/api/public/momo/webhook'
       path: '/api/public/momo/webhook'
@@ -245,6 +265,7 @@ const rootRouteChildren: RootRouteChildren = {
   HowItWorksRoute: HowItWorksRoute,
   LoansRoute: LoansRoute,
   ManagerRoute: ManagerRoute,
+  ApiPublicSeedAdminRoute: ApiPublicSeedAdminRoute,
   ApiPublicMomoWebhookRoute: ApiPublicMomoWebhookRoute,
 }
 export const routeTree = rootRouteImport
