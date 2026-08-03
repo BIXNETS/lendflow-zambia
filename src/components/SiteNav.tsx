@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Brand } from "@/components/Brand";
 import { cn } from "@/lib/utils";
+import { useAccount } from "@/lib/session";
 
 const LINKS = [
   { to: "/", label: "Home" },
@@ -14,6 +15,9 @@ const LINKS = [
 
 export function SiteNav({ onApply }: { onApply?: () => void }) {
   const [open, setOpen] = useState(false);
+  const { account } = useAccount();
+  const home = account?.role === "manager" ? "/manager" : "/dashboard";
+
   return (
     <header className="sticky top-0 z-40 border-b border-[color:var(--color-line)] bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3.5">
