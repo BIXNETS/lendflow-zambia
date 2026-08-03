@@ -2,9 +2,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowRight, User, Mail, Phone, Smartphone, CheckCircle2, Loader } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { currentUser, money, saveApplication, type Application } from "@/lib/demo-auth";
+import { currentUser, money, saveApplication, computeLoan, INTEREST_LABEL, type Application } from "@/lib/demo-auth";
 
-export type LoanCtx = { amount: number; term: number; pct: number; commitment: number; monthly: number };
+export type LoanCtx = { amount: number; term: number; pct: number; serviceFee: number; monthly: number };
 
 /* ---------------- Wizard ---------------- */
 type Form = {
@@ -61,7 +61,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
       email: form.email.trim().toLowerCase(),
       name: `${form.firstName} ${form.lastName}`.trim(),
       amount: loan.amount, term: loan.term,
-      commitmentPct: loan.pct, commitment: loan.commitment,
+      serviceFeePct: loan.pct, serviceFee: loan.serviceFee,
       provider: form.provider, msisdn: form.msisdn, purpose: form.purpose,
       status: "under_review", createdAt: new Date().toISOString(),
     };
@@ -94,7 +94,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
         <div className="max-h-[70vh] overflow-y-auto px-6 py-6">
           {status === "processing" && <ProcessingView />}
           {status === "done" && (
-            <SuccessView serviceFee={loan.commitment} onDashboard={() => { onClose(); navigate({ to: "/dashboard" }); }} />
+            <SuccessView serviceFee={loan.serviceFee} onDashboard={() => { onClose(); navigate({ to: "/dashboard" }); }} />
           )}
 
           {status === "idle" && step === 1 && (
@@ -121,9 +121,10 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                 <div className="mt-3 grid grid-cols-3 gap-3">
                   <ReviewItem label="Amount" value={money(loan.amount)} />
                   <ReviewItem label="Term" value={`${loan.term} months`} />
-                  <ReviewItem label="Interest" value="2.5%" />
+                  <ReviewItem label="Interest" value={INTEREST_LABEL} />
                 </div>
               </div>
+              <Breakdown loan={loan} />
               <Field label="Purpose of loan" error={errors.purpose} full>
                 <select value={form.purpose} onChange={e => update("purpose", e.target.value)} className={inputCls(errors.purpose)}>
                   <option value="">Select…</option>
@@ -132,17 +133,20 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                 </select>
               </Field>
             </div>
+
           )}
 
           {status === "idle" && step === 3 && (
             <div className="space-y-5">
               <div className="rounded-2xl border border-[color:var(--color-leaf)]/40 bg-[color:var(--color-mint)] p-5">
                 <div className="text-xs font-bold uppercase tracking-widest text-[color:var(--color-leaf-dark)]">Service fee due now</div>
-                <div className="mt-1 text-3xl font-black">{money(loan.commitment)}</div>
+                <div className="mt-1 text-3xl font-black">{money(loan.serviceFee)}</div>
                 <p className="mt-1 text-xs text-[color:var(--color-muted)]">
-                  {loan.pct}% of {money(loan.amount)}, paid once up front. Your loan then carries a flat 2.5% interest — you repay {money(Math.round(loan.amount * 1.025))} in total.
+                  {loan.pct}% of {money(loan.amount)}, paid once up front. Your loan then carries a flat {INTEREST_LABEL} interest — you repay {money(computeLoan(loan.amount, loan.pct, loan.term).totalRepayment)} in total.
                 </p>
               </div>
+              <Breakdown loan={loan} />
+
               <Field label="Mobile money provider" error={errors.provider} full>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {["MTN MoMo", "Airtel Money", "M-Pesa"].map(p => (
@@ -163,7 +167,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                 <input type="checkbox" checked={form.consent} onChange={e => update("consent", e.target.checked)}
                   className="mt-1 h-4 w-4 accent-[color:var(--color-leaf)]" />
                 <span className="text-[color:var(--color-muted)]">
-                  I authorise LendFlow Africa to collect the {money(loan.commitment)} service fee from this wallet, refundable if declined.
+                  I authorise LendFlow Africa to collect the {money(loan.serviceFee)} service fee from this wallet, refundable if declined.
                 </span>
               </label>
               {errors.consent && <p className="text-sm text-red-600">{errors.consent}</p>}
@@ -177,8 +181,8 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                 <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
                   <ReviewItem label="Amount" value={money(loan.amount)} />
                   <ReviewItem label="Term" value={`${loan.term} mo`} />
-                  <ReviewItem label="Interest" value="2.5%" />
-                  <ReviewItem label="Service fee" value={`${money(loan.commitment)} (${loan.pct}%)`} />
+                  <ReviewItem label="Interest" value={INTEREST_LABEL} />
+                  <ReviewItem label="Service fee" value={`${money(loan.serviceFee)} (${loan.pct}%)`} />
                 </div>
               </div>
               <div className="card p-5">
@@ -274,5 +278,29 @@ export function inputCls(error?: string) {
     "w-full rounded-xl border bg-white px-3.5 py-3 text-sm outline-none transition placeholder:text-[color:var(--color-muted)]/60",
     "focus:border-[color:var(--color-leaf)] focus:ring-2 focus:ring-[color:var(--color-leaf)]/25",
     error ? "border-red-400 ring-2 ring-red-200" : "border-[color:var(--color-line)]",
+  );
+}
+
+function Breakdown({ loan }: { loan: LoanCtx }) {
+  const b = computeLoan(loan.amount, loan.pct, loan.term);
+  return (
+    <dl className="space-y-2 rounded-2xl border border-[color:var(--color-line)] bg-[color:var(--color-sky)]/60 p-4 text-sm">
+      <div className="flex items-center justify-between gap-3">
+        <dt className="text-[color:var(--color-muted)]">Principal</dt>
+        <dd className="font-bold tabular-nums">{money(b.principal)}</dd>
+      </div>
+      <div className="flex items-center justify-between gap-3">
+        <dt className="text-[color:var(--color-muted)]">Interest ({INTEREST_LABEL} flat)</dt>
+        <dd className="font-bold tabular-nums">{money(b.interest)}</dd>
+      </div>
+      <div className="flex items-center justify-between gap-3 border-t border-[color:var(--color-line)] pt-2">
+        <dt className="font-bold">Total repayment</dt>
+        <dd className="font-black tabular-nums">{money(b.totalRepayment)}</dd>
+      </div>
+      <div className="flex items-center justify-between gap-3">
+        <dt className="text-[color:var(--color-muted)]">Service fee ({loan.pct}%, paid up front)</dt>
+        <dd className="font-bold tabular-nums">{money(b.serviceFee)}</dd>
+      </div>
+    </dl>
   );
 }

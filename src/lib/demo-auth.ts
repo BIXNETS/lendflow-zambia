@@ -14,12 +14,12 @@ export type Application = {
   name: string;
   amount: number;
   term: number;
-  commitmentPct: number;
-  commitment: number;
+  serviceFeePct: number;
+  serviceFee: number;
   provider: string;
   msisdn: string;
   purpose: string;
-  status: "awaiting_commitment" | "under_review" | "approved" | "declined";
+  status: "awaiting_fee" | "under_review" | "approved" | "declined";
   createdAt: string;
 };
 
@@ -95,21 +95,21 @@ function seedApplications(): Application[] {
   const seed: Application[] = [
     {
       id: "LF-10241", email: "client@lendflowafrica.com", name: "Joseph Banda",
-      amount: 8000, term: 6, commitmentPct: 12, commitment: 960,
+      amount: 8000, term: 6, serviceFeePct: 12, serviceFee: 960,
       provider: "MTN MoMo", msisdn: "+260 97 555 0142", purpose: "Business stock",
       status: "under_review", createdAt: new Date(Date.now() - 864e5 * 2).toISOString(),
     },
     {
       id: "LF-10238", email: "mary.phiri@example.com", name: "Mary Phiri",
-      amount: 15000, term: 12, commitmentPct: 15, commitment: 2250,
+      amount: 15000, term: 12, serviceFeePct: 15, serviceFee: 2250,
       provider: "Airtel Money", msisdn: "+260 96 555 0987", purpose: "Farming inputs",
       status: "approved", createdAt: new Date(Date.now() - 864e5 * 9).toISOString(),
     },
     {
       id: "LF-10233", email: "kofi.mensah@example.com", name: "Kofi Mensah",
-      amount: 4000, term: 3, commitmentPct: 10, commitment: 400,
+      amount: 4000, term: 3, serviceFeePct: 10, serviceFee: 400,
       provider: "M-Pesa", msisdn: "+254 71 555 0034", purpose: "School fees",
-      status: "awaiting_commitment", createdAt: new Date(Date.now() - 864e5 * 12).toISOString(),
+      status: "awaiting_fee", createdAt: new Date(Date.now() - 864e5 * 12).toISOString(),
     },
   ];
   write(APPS_KEY, seed);
@@ -118,3 +118,16 @@ function seedApplications(): Application[] {
 
 export const money = (n: number) =>
   "K" + Math.round(n).toLocaleString("en-US");
+
+/** Flat interest charged on every LendFlow loan. */
+export const INTEREST_RATE = 0.025;
+export const INTEREST_LABEL = "2.5%";
+
+/** Single source of truth for loan maths: principal, service fee, interest, total. */
+export function computeLoan(amount: number, pct: number, term: number) {
+  const principal = Math.round(amount);
+  const serviceFee = Math.round((principal * pct) / 100);
+  const interest = Math.round(principal * INTEREST_RATE);
+  const totalRepayment = principal + interest;
+  return { principal, serviceFee, interest, totalRepayment, monthly: totalRepayment / term };
+}

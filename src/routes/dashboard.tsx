@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AppShell, KpiCard, StatusPill } from "@/components/AppShell";
-import { currentUser, listApplications, money, type Account, type Application } from "@/lib/demo-auth";
+import { currentUser, listApplications, money, computeLoan, type Account, type Application } from "@/lib/demo-auth";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -35,7 +35,7 @@ function ClientDashboard() {
 
   const approved = apps.filter(a => a.status === "approved");
   const outstanding = approved.reduce((s, a) => s + a.amount, 0);
-  const paidCommitment = apps.reduce((s, a) => s + a.commitment, 0);
+  const paidServiceFees = apps.reduce((s, a) => s + a.serviceFee, 0);
 
   return (
     <AppShell user={user} subtitle="Borrower account">
@@ -46,7 +46,7 @@ function ClientDashboard() {
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <KpiCard label="Applications" value={String(apps.length)} hint="Lifetime" tone="sky" />
           <KpiCard label="Outstanding" value={money(outstanding)} hint="Principal only" />
-          <KpiCard label="Service fees paid" value={money(paidCommitment)} tone="sun" />
+          <KpiCard label="Service fees paid" value={money(paidServiceFees)} tone="sun" />
           <KpiCard label="Interest charged" value="2.5%" hint="flat, on the loan amount" />
         </div>
 
@@ -69,8 +69,13 @@ function ClientDashboard() {
                       <span className="text-xs text-[color:var(--color-muted)]">· {a.term} months · {a.purpose}</span>
                     </div>
                     <div className="mt-1 text-xs text-[color:var(--color-muted)]">
-                      {a.id} · service fee {money(a.commitment)} ({a.commitmentPct}%) via {a.provider}
+                      {a.id} · service fee {money(a.serviceFee)} ({a.serviceFeePct}%) via {a.provider}
                     </div>
+                    <div className="mt-1 text-xs text-[color:var(--color-muted)]">
+                      Principal {money(a.amount)} · interest {money(computeLoan(a.amount, a.serviceFeePct, a.term).interest)} · total repayment{" "}
+                      <span className="font-bold text-[color:var(--color-fg)]">{money(computeLoan(a.amount, a.serviceFeePct, a.term).totalRepayment)}</span>
+                    </div>
+
                   </div>
                   <StatusPill status={a.status} />
                 </div>
@@ -89,7 +94,7 @@ function ClientDashboard() {
                 Array.from({ length: Math.min(a.term, 6) }).map((_, i) => (
                   <li key={a.id + i} className="flex items-center justify-between rounded-xl bg-[color:var(--color-sky)] px-4 py-2.5">
                     <span className="text-[color:var(--color-muted)]">{a.id} · instalment {i + 1}</span>
-                    <span className="font-bold tabular-nums">{money(a.amount / a.term)}</span>
+                    <span className="font-bold tabular-nums">{money(computeLoan(a.amount, a.serviceFeePct, a.term).monthly)}</span>
                   </li>
                 )),
               )}

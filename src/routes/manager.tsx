@@ -45,7 +45,7 @@ function ManagerDashboard() {
   const shown = filter === "all" ? apps : apps.filter(a => a.status === filter);
   const pending = apps.filter(a => a.status === "under_review").length;
   const book = apps.filter(a => a.status === "approved").reduce((s, a) => s + a.amount, 0);
-  const fees = apps.reduce((s, a) => s + a.commitment, 0);
+  const fees = apps.reduce((s, a) => s + a.serviceFee, 0);
 
   return (
     <AppShell user={user} subtitle="Manager · back office">
@@ -61,7 +61,7 @@ function ManagerDashboard() {
         </div>
 
         <div className="mt-8 flex flex-wrap gap-2">
-          {(["all", "under_review", "awaiting_commitment", "approved", "declined"] as const).map(f => (
+          {(["all", "under_review", "awaiting_fee", "approved", "declined"] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)}
               className={`rounded-full px-4 py-2 text-xs font-bold capitalize transition ${
                 filter === f ? "btn-navy" : "border border-[color:var(--color-line)] bg-white text-[color:var(--color-navy)] hover:bg-[color:var(--color-sky)]"
@@ -87,7 +87,7 @@ function ManagerDashboard() {
                       {a.id} · {money(a.amount)} over {a.term} months · {a.purpose}
                     </div>
                     <div className="mt-1 text-xs text-[color:var(--color-muted)]">
-                      Service fee {money(a.commitment)} ({a.commitmentPct}%) · {a.provider} {a.msisdn} · {a.email}
+                      Service fee {money(a.serviceFee)} ({a.serviceFeePct}%) · {a.provider} {a.msisdn} · {a.email}
                     </div>
                   </div>
                   <div className="flex shrink-0 flex-wrap gap-2">
