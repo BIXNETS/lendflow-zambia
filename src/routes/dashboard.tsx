@@ -10,6 +10,8 @@ import { DEFAULT_PRODUCT_ID, getProduct } from "@/lib/loan-products";
 import { getMyOverview, markNotificationsRead, repayLoan } from "@/lib/lending.functions";
 
 
+type DashboardSearch = { apply?: boolean; product?: string };
+
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
@@ -21,6 +23,11 @@ export const Route = createFileRoute("/dashboard")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  // Keeps the wizard open across refresh and closes cleanly on browser back.
+  validateSearch: (search: Record<string, unknown>): DashboardSearch => ({
+    apply: search.apply === true || search.apply === "true" || search.apply === "1" ? true : undefined,
+    product: typeof search.product === "string" ? search.product : undefined,
+  }),
   ssr: false,
   component: ClientDashboard,
 });
@@ -29,6 +36,7 @@ type Row = Record<string, any>;
 
 function ClientDashboard() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const { account, loading } = useAccount();
   const overview = useServerFn(getMyOverview);
   const repay = useServerFn(repayLoan);
@@ -38,8 +46,9 @@ function ClientDashboard() {
     kycStatus: string; applications: Row[]; loans: Row[]; transactions: Row[]; notifications: Row[];
   }>(null);
   const [busy, setBusy] = useState<string | null>(null);
-  const [wizardOpen, setWizardOpen] = useState(false);
   const [error, setError] = useState("");
+
+  const wizardOpen = search.apply === true;
 
   const refresh = useCallback(async () => {
     const d = await overview({});
@@ -52,14 +61,38 @@ function ClientDashboard() {
     });
   }, [overview]);
 
+  // Opening/closing the wizard only ever changes the dashboard's search params —
+  // it never navigates away from /dashboard.
+  const openWizard = useCallback((productId?: string) => {
+    void navigate({ to: "/dashboard", search: { apply: true, product: productId }, resetScroll: false });
+  }, [navigate]);
+
+  const closeWizard = useCallback(() => {
+    void navigate({ to: "/dashboard", search: {}, replace: true, resetScroll: false });
+    void refresh();
+    // Return the borrower to the exact section they launched the wizard from.
+    requestAnimationFrame(() => {
+      document.querySelector('[data-testid="loans-card"]')?.scrollIntoView({ block: "start", behavior: "smooth" });
+    });
+  }, [navigate, refresh]);
+
   useEffect(() => {
     if (loading) return;
-    if (!account) { navigate({ to: "/auth" }); return; }
+    if (!account) { navigate({ to: "/auth", search: { redirect: "/dashboard" } as never }); return; }
     if (account.role === "manager") { navigate({ to: "/manager" }); return; }
     void refresh();
   }, [loading, account, navigate, refresh]);
 
+  // Never blank out into a redirect-looking state while the session/data loads.
+  if (loading || (account?.role === "client" && !data)) {
+    return (
+      <div data-testid="dashboard-loading" className="grid min-h-[60vh] place-items-center p-10 text-sm font-semibold text-[color:var(--color-muted)]">
+        Loading your dashboard…
+      </div>
+    );
+  }
   if (!account || account.role !== "client" || !data) return null;
+
 
   const outstanding = data.loans.reduce((s, l) => s + Number(l.outstanding_principal ?? 0), 0);
   const disbursed = data.loans.filter(l => l.disbursed_at).reduce((s, l) => s + Number(l.principal), 0);
