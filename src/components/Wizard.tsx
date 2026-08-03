@@ -2,7 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowRight, User, Mail, Phone, Smartphone, CheckCircle2, Loader } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { currentUser, money, saveApplication, type Application } from "@/lib/demo-auth";
+import { currentUser, money, saveApplication, computeLoan, INTEREST_LABEL, type Application } from "@/lib/demo-auth";
 
 export type LoanCtx = { amount: number; term: number; pct: number; serviceFee: number; monthly: number };
 
@@ -278,5 +278,29 @@ export function inputCls(error?: string) {
     "w-full rounded-xl border bg-white px-3.5 py-3 text-sm outline-none transition placeholder:text-[color:var(--color-muted)]/60",
     "focus:border-[color:var(--color-leaf)] focus:ring-2 focus:ring-[color:var(--color-leaf)]/25",
     error ? "border-red-400 ring-2 ring-red-200" : "border-[color:var(--color-line)]",
+  );
+}
+
+function Breakdown({ loan }: { loan: LoanCtx }) {
+  const b = computeLoan(loan.amount, loan.pct, loan.term);
+  return (
+    <dl className="space-y-2 rounded-2xl border border-[color:var(--color-line)] bg-[color:var(--color-sky)]/60 p-4 text-sm">
+      <div className="flex items-center justify-between gap-3">
+        <dt className="text-[color:var(--color-muted)]">Principal</dt>
+        <dd className="font-bold tabular-nums">{money(b.principal)}</dd>
+      </div>
+      <div className="flex items-center justify-between gap-3">
+        <dt className="text-[color:var(--color-muted)]">Interest ({INTEREST_LABEL} flat)</dt>
+        <dd className="font-bold tabular-nums">{money(b.interest)}</dd>
+      </div>
+      <div className="flex items-center justify-between gap-3 border-t border-[color:var(--color-line)] pt-2">
+        <dt className="font-bold">Total repayment</dt>
+        <dd className="font-black tabular-nums">{money(b.totalRepayment)}</dd>
+      </div>
+      <div className="flex items-center justify-between gap-3">
+        <dt className="text-[color:var(--color-muted)]">Service fee ({loan.pct}%, paid up front)</dt>
+        <dd className="font-bold tabular-nums">{money(b.serviceFee)}</dd>
+      </div>
+    </dl>
   );
 }
