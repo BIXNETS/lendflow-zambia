@@ -1,10 +1,9 @@
-import logo from "@/assets/lendflow-logo.png.asset.json";
 import { cn } from "@/lib/utils";
 
 export function Brand({ className, showWord = true }: { className?: string; showWord?: boolean }) {
   return (
     <span className={cn("flex items-center gap-2.5", className)}>
-      <img src={logo.url} alt="LendFlow Africa logo" className="h-9 w-9 rounded-xl object-contain" />
+      <img src="/lendflow-logo.png" alt="LendFlow Africa logo" className="h-9 w-9 rounded-xl object-contain" />
       {showWord && (
         <span className="text-base font-extrabold tracking-tight leading-none">
           <span className="text-[color:var(--color-navy)]">Lend</span>
