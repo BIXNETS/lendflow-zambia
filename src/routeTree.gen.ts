@@ -19,6 +19,7 @@ import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as KycRouteImport } from './routes/kyc'
 import { Route as LoansRouteImport } from './routes/loans'
 import { Route as ManagerRouteImport } from './routes/manager'
+import { Route as AdminTeamRouteImport } from './routes/admin.team'
 import { Route as ApiPublicMomoWebhookRouteImport } from './routes/api/public/momo/webhook'
 
 const IndexRoute = IndexRouteImport.update({
@@ -71,6 +72,11 @@ const ManagerRoute = ManagerRouteImport.update({
   path: '/manager',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminTeamRoute = AdminTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AdminRoute,
+} as any)
 const ApiPublicMomoWebhookRoute = ApiPublicMomoWebhookRouteImport.update({
   id: '/api/public/momo/webhook',
   path: '/api/public/momo/webhook',
@@ -80,7 +86,7 @@ const ApiPublicMomoWebhookRoute = ApiPublicMomoWebhookRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/faqs': typeof FaqsRoute
@@ -88,12 +94,13 @@ export interface FileRoutesByFullPath {
   '/kyc': typeof KycRoute
   '/loans': typeof LoansRoute
   '/manager': typeof ManagerRoute
+  '/admin/team': typeof AdminTeamRoute
   '/api/public/momo/webhook': typeof ApiPublicMomoWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/faqs': typeof FaqsRoute
@@ -101,13 +108,14 @@ export interface FileRoutesByTo {
   '/kyc': typeof KycRoute
   '/loans': typeof LoansRoute
   '/manager': typeof ManagerRoute
+  '/admin/team': typeof AdminTeamRoute
   '/api/public/momo/webhook': typeof ApiPublicMomoWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/faqs': typeof FaqsRoute
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/kyc': typeof KycRoute
   '/loans': typeof LoansRoute
   '/manager': typeof ManagerRoute
+  '/admin/team': typeof AdminTeamRoute
   '/api/public/momo/webhook': typeof ApiPublicMomoWebhookRoute
 }
 export interface FileRouteTypes {
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/kyc'
     | '/loans'
     | '/manager'
+    | '/admin/team'
     | '/api/public/momo/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/kyc'
     | '/loans'
     | '/manager'
+    | '/admin/team'
     | '/api/public/momo/webhook'
   id:
     | '__root__'
@@ -156,13 +167,14 @@ export interface FileRouteTypes {
     | '/kyc'
     | '/loans'
     | '/manager'
+    | '/admin/team'
     | '/api/public/momo/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
   FaqsRoute: typeof FaqsRoute
@@ -245,6 +257,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManagerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/team': {
+      id: '/admin/team'
+      path: '/team'
+      fullPath: '/admin/team'
+      preLoaderRoute: typeof AdminTeamRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/api/public/momo/webhook': {
       id: '/api/public/momo/webhook'
       path: '/api/public/momo/webhook'
@@ -255,10 +274,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminTeamRoute: typeof AdminTeamRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminTeamRoute: AdminTeamRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
   FaqsRoute: FaqsRoute,

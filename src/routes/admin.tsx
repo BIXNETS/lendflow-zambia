@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Loader, Plus, Save, ShieldAlert } from "lucide-react";
+import { Loader, Plus, Save, ShieldAlert, Users } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { SiteNav, SiteFooter } from "@/components/SiteNav";
 import { inputCls } from "@/components/Wizard";
@@ -147,10 +148,16 @@ function AdminSettings() {
     <div className="min-h-screen">
       <SiteNav />
       <main className="mx-auto max-w-7xl px-6 py-10">
-        <h1 className="text-3xl font-black tracking-tight">Country settings</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-3xl font-black tracking-tight">Country settings</h1>
+          <Link to="/admin/team" className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-line)] bg-white px-4 py-2 text-xs font-bold hover:bg-[color:var(--color-sky)]">
+            <Users className="h-4 w-4" /> Team &amp; roles
+          </Link>
+        </div>
         <p className="mt-2 text-sm text-[color:var(--color-muted)]">
           Currency, loan limits, service fee ranges, eligibility rules and payment methods — configurable per market, no code changes.
         </p>
+
 
         {!signedIn && (
           <div className="card mt-6 flex items-center gap-3 p-5 text-sm">
