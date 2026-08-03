@@ -83,6 +83,35 @@ function ClientDashboard() {
     void refresh();
   }, [loading, account, navigate, refresh]);
 
+  // Live + periodic refresh so an admin's KYC approval / decision unlocks the
+  // dashboard immediately without a manual reload.
+  useEffect(() => {
+    if (loading || !account || account.role !== "client") return;
+    let cancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    void (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user || cancelled) return;
+      channel = supabase
+        .channel(`dashboard-${u.user.id}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "profiles", filter: `id=eq.${u.user.id}` }, () => void refresh())
+        .on("postgres_changes", { event: "*", schema: "public", table: "kyc_documents", filter: `user_id=eq.${u.user.id}` }, () => void refresh())
+        .subscribe();
+    })();
+
+    const timer = setInterval(() => { void refresh(); }, 15000);
+    const onFocus = () => { void refresh(); };
+    window.addEventListener("focus", onFocus);
+    return () => {
+      cancelled = true;
+      if (channel) void supabase.removeChannel(channel);
+      clearInterval(timer);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [loading, account, refresh]);
+
+
   // Never blank out into a redirect-looking state while the session/data loads.
   if (loading || (account?.role === "client" && !data)) {
     return (
