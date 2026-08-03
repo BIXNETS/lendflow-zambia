@@ -1,16 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Briefcase, GraduationCap, HeartHandshake, Check } from "lucide-react";
+import {
+  Briefcase, GraduationCap, HeartHandshake, Check, Sprout, ShieldCheck,
+  Landmark, Wallet, Receipt, ArrowLeftRight, TrendingUp, Users,
+} from "lucide-react";
 import { SiteNav, SiteFooter, ApplyButton } from "@/components/SiteNav";
 import { Wizard } from "@/components/Wizard";
 
 export const Route = createFileRoute("/loans")({
   head: () => ({
     meta: [
-      { title: "Loan Options — Business, Education & Personal | LendFlow" },
-      { name: "description", content: "Compare LendFlow Africa loan options: business capital, education fees and personal loans with 2.5% interest and flexible mobile money repayments." },
-      { property: "og:title", content: "Loan Options — LendFlow Africa" },
-      { property: "og:description", content: "Business, education and personal micro loans with flexible repayments." },
+      { title: "Loans, Payments & Investing — Our Services | LendFlow" },
+      { name: "description", content: "Borrow, pay and invest with LendFlow Africa: personal, business, agri, civil servant, scheme, collateral-backed and salary advance loans at 2.5% interest." },
+      { property: "og:title", content: "Our Services — LendFlow Africa" },
+      { property: "og:description", content: "Borrow, pay and invest — personal, business, agri, civil servant, scheme, collateral-backed and salary advance loans." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -18,11 +21,47 @@ export const Route = createFileRoute("/loans")({
   component: Loans,
 });
 
+const PILLARS = [
+  { icon: <Wallet />, title: "Borrow", body: "Access instant and flexible loans made for you.", cta: "Apply now" },
+  { icon: <ArrowLeftRight />, title: "Pay", body: "Pay bills, transfer money and manage transactions.", cta: "Get started" },
+  { icon: <TrendingUp />, title: "Invest", body: "Lend to creditworthy borrowers and enjoy rewarding returns.", cta: "Learn more" },
+];
+
 const OPTIONS = [
+  {
+    icon: <HeartHandshake />, title: "Personal Loans",
+    body: "For medical bills, home repairs and the unexpected moments.",
+    points: ["K500 – K250,000", "Fast decisions", "Mobile wallet payout"],
+  },
   {
     icon: <Briefcase />, title: "Business Loans",
     body: "Grow your stock, expand your stall or cover a cash-flow gap.",
-    points: ["K1,000 – K50,000", "3 – 24 month terms", "Same-day disbursement"],
+    points: ["K500 – K1,000,000", "3 – 24 month terms", "Same-day disbursement"],
+  },
+  {
+    icon: <Sprout />, title: "Agri Loans",
+    body: "Fund seeds, fertiliser, tools and equipment to grow your farm.",
+    points: ["Harvest-aligned repayments", "Input supplier payouts", "Seasonal terms"],
+  },
+  {
+    icon: <Landmark />, title: "Civil Servant Loans",
+    body: "Payroll-backed lending for government and public sector workers.",
+    points: ["Payroll deduction", "Higher limits", "Low documentation"],
+  },
+  {
+    icon: <Users />, title: "Scheme Loans",
+    body: "Employer-approved schemes for staff at partner organisations.",
+    points: ["Employer partnership", "Group onboarding", "Preferential rates"],
+  },
+  {
+    icon: <ShieldCheck />, title: "Collateral Backed Loans",
+    body: "Unlock bigger amounts against a vehicle, property or equipment.",
+    points: ["Largest limits", "Longer terms", "Asset valuation included"],
+  },
+  {
+    icon: <Wallet />, title: "Salary Advance",
+    body: "Bridge the gap to payday with a short-term advance.",
+    points: ["1 – 3 month terms", "Same-day payout", "Repaid on payday"],
   },
   {
     icon: <GraduationCap />, title: "Education Loans",
@@ -30,11 +69,12 @@ const OPTIONS = [
     points: ["Term-aligned repayments", "Pay school directly", "No hidden charges"],
   },
   {
-    icon: <HeartHandshake />, title: "Personal Loans",
-    body: "For medical bills, home repairs and the unexpected moments.",
-    points: ["Fast decisions", "2.5% interest", "Mobile wallet payout"],
+    icon: <Receipt />, title: "Bill Credit", soon: true,
+    body: "Airtime, data, pay TV, electricity and water on credit.",
+    points: ["Buy now, pay later", "All major billers", "Coming soon"],
   },
 ];
+
 
 function Loans() {
   const [open, setOpen] = useState(false);
