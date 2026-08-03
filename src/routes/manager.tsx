@@ -61,7 +61,7 @@ function ManagerDashboard() {
         </div>
 
         <div className="mt-8 flex flex-wrap gap-2">
-          {(["all", "under_review", "awaiting_commitment", "approved", "declined"] as const).map(f => (
+          {(["all", "under_review", "awaiting_fee", "approved", "declined"] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)}
               className={`rounded-full px-4 py-2 text-xs font-bold capitalize transition ${
                 filter === f ? "btn-navy" : "border border-[color:var(--color-line)] bg-white text-[color:var(--color-navy)] hover:bg-[color:var(--color-sky)]"

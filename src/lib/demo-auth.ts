@@ -19,7 +19,7 @@ export type Application = {
   provider: string;
   msisdn: string;
   purpose: string;
-  status: "awaiting_commitment" | "under_review" | "approved" | "declined";
+  status: "awaiting_fee" | "under_review" | "approved" | "declined";
   createdAt: string;
 };
 
@@ -109,7 +109,7 @@ function seedApplications(): Application[] {
       id: "LF-10233", email: "kofi.mensah@example.com", name: "Kofi Mensah",
       amount: 4000, term: 3, serviceFeePct: 10, serviceFee: 400,
       provider: "M-Pesa", msisdn: "+254 71 555 0034", purpose: "School fees",
-      status: "awaiting_commitment", createdAt: new Date(Date.now() - 864e5 * 12).toISOString(),
+      status: "awaiting_fee", createdAt: new Date(Date.now() - 864e5 * 12).toISOString(),
     },
   ];
   write(APPS_KEY, seed);

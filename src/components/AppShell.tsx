@@ -45,7 +45,7 @@ export function StatusPill({ status }: { status: string }) {
   const map: Record<string, string> = {
     approved: "bg-[color:var(--color-mint)] text-[color:var(--color-leaf-dark)]",
     under_review: "bg-[color:var(--color-sky)] text-[color:var(--color-navy)]",
-    awaiting_commitment: "bg-amber-50 text-amber-700",
+    awaiting_fee: "bg-amber-50 text-amber-700",
     declined: "bg-red-50 text-red-600",
   };
   const label = status.replace(/_/g, " ");
