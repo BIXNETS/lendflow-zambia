@@ -3,9 +3,12 @@ import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Bell, ShieldCheck } from "lucide-react";
 import { AppShell, KpiCard, StatusPill } from "@/components/AppShell";
-import { money } from "@/lib/demo-auth";
+import { money, INTEREST_RATE } from "@/lib/demo-auth";
 import { useAccount } from "@/lib/session";
+import { Wizard } from "@/components/Wizard";
+import { DEFAULT_PRODUCT_ID, getProduct } from "@/lib/loan-products";
 import { getMyOverview, markNotificationsRead, repayLoan } from "@/lib/lending.functions";
+
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -35,6 +38,7 @@ function ClientDashboard() {
     kycStatus: string; applications: Row[]; loans: Row[]; transactions: Row[]; notifications: Row[];
   }>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [wizardOpen, setWizardOpen] = useState(false);
   const [error, setError] = useState("");
 
   const refresh = useCallback(async () => {
@@ -97,7 +101,14 @@ function ClientDashboard() {
             <section data-testid="loans-card" className="card overflow-hidden">
               <div className="flex items-center justify-between border-b border-[color:var(--color-line)] px-6 py-4">
                 <h2 className="text-lg font-bold">My loans</h2>
-                <Link to="/" className="btn-primary rounded-full px-4 py-2 text-xs font-bold">New application</Link>
+                <button
+                  type="button"
+                  data-testid="apply-loan"
+                  onClick={() => setWizardOpen(true)}
+                  className="btn-primary rounded-full px-4 py-2 text-xs font-bold"
+                >
+                  Apply for a loan
+                </button>
               </div>
               {data.loans.length === 0 ? (
                 <p className="px-6 py-10 text-center text-sm text-[color:var(--color-muted)]">
@@ -215,6 +226,20 @@ function ClientDashboard() {
           </section>
         </div>
       </div>
+
+      {wizardOpen && (() => {
+        const p = getProduct(DEFAULT_PRODUCT_ID);
+        const amount = Math.min(Math.max(15000, p.minAmount), p.maxAmount);
+        const term = Math.min(Math.max(12, p.minTerm), p.maxTerm);
+        const serviceFee = Math.round((amount * p.serviceFeePct) / 100);
+        const monthly = (amount + Math.round(amount * INTEREST_RATE)) / term;
+        return (
+          <Wizard
+            loan={{ amount, term, pct: p.serviceFeePct, serviceFee, monthly, productId: p.id }}
+            onClose={() => { setWizardOpen(false); void refresh(); }}
+          />
+        );
+      })()}
     </AppShell>
   );
 }
