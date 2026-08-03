@@ -174,11 +174,31 @@ function Landing() {
               <SliderRow label="Repayment term" value={`${term} months`} min={3} max={24} step={1} v={term} onChange={setTerm} className="mt-6" />
               <SliderRow label="Service fee (10–15%)" value={`${pct}%`} min={10} max={15} step={1} v={pct} onChange={setPct} className="mt-6" />
             </div>
-            <div className="mt-8 grid grid-cols-3 gap-3 text-center">
+            <div className="mt-8 grid grid-cols-2 gap-3 text-center sm:grid-cols-3">
               <Stat label="Service fee" value={money(serviceFee)} highlight />
               <Stat label="Monthly" value={money(monthly)} />
               <Stat label="Total repaid" value={money(totalRepaid)} />
             </div>
+
+            <dl className="mt-6 space-y-2 rounded-2xl border border-[color:var(--color-line)] bg-[color:var(--color-sky)]/60 p-4 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <dt className="text-[color:var(--color-muted)]">Principal</dt>
+                <dd className="font-bold tabular-nums">{money(amount)}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <dt className="text-[color:var(--color-muted)]">Interest (2.5% flat)</dt>
+                <dd className="font-bold tabular-nums">{money(interest)}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-3 border-t border-[color:var(--color-line)] pt-2">
+                <dt className="font-bold">Total repayment</dt>
+                <dd className="font-black tabular-nums">{money(totalRepaid)}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <dt className="text-[color:var(--color-muted)]">Service fee ({pct}%, paid up front)</dt>
+                <dd className="font-bold tabular-nums">{money(serviceFee)}</dd>
+              </div>
+            </dl>
+
             <button onClick={() => setWizardOpen(true)}
               className="btn-primary mt-8 flex w-full items-center justify-center gap-2 rounded-xl px-6 py-4 text-base font-bold transition">
               Get your loan <ArrowRight className="h-4 w-4" />
