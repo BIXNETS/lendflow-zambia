@@ -80,6 +80,7 @@ test.describe("Full lending lifecycle", () => {
     const calc = computeLoan(fit.amount, PRODUCT.serviceFeePct, fit.term, PRODUCT.interestRate);
 
     await borrower.goto("/loans");
+    await borrower.waitForLoadState("networkidle");
     const card = borrower.getByTestId(`service-card-${PRODUCT.id}`);
     await card.scrollIntoViewIfNeeded();
     await card.getByRole("button").last().click();
