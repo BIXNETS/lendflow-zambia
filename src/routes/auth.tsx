@@ -53,16 +53,12 @@ function AuthPage() {
     }
   };
 
-  const CREDENTIALS = [
-    { role: "manager" as const, email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
+  const HIGHLIGHTS = [
+    { icon: ShieldCheck, title: "Bank-grade security", body: "Your details are encrypted in transit and at rest." },
+    { icon: Clock, title: "Decisions in minutes", body: "Verify your identity once and apply any time." },
+    { icon: Lock, title: "You stay in control", body: "Track balances, repayments and receipts in your dashboard." },
   ];
 
-  const useDemo = (i: number) => {
-    setMode("signin");
-    setEmail(CREDENTIALS[i]!.email);
-    setPassword(CREDENTIALS[i]!.password);
-    setError("");
-  };
 
   return (
     <div className="min-h-screen">
