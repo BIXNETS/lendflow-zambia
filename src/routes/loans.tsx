@@ -108,7 +108,7 @@ function Loans() {
 
         <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {OPTIONS.map((o) => (
-            <article key={o.title} className="card flex flex-col p-7 text-left">
+            <article key={o.title} data-testid={`service-card-${o.productId}`} className="card flex flex-col p-7 text-left">
               <div className="flex items-start justify-between gap-3">
                 <div className="grid h-14 w-14 place-items-center rounded-2xl bg-[color:var(--color-mint)] text-[color:var(--color-leaf-dark)] [&_svg]:h-7 [&_svg]:w-7">
                   {o.icon}

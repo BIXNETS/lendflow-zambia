@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Brand } from "@/components/Brand";
-import { DEMO_ACCOUNTS, signIn, signUp } from "@/lib/demo-auth";
+import { ADMIN_EMAIL, ADMIN_PASSWORD, signInAccount, signUpAccount } from "@/lib/session";
 import { inputCls } from "@/components/Wizard";
 import { cn } from "@/lib/utils";
 import { KeyRound, ShieldCheck, UserPlus } from "lucide-react";
@@ -28,29 +28,39 @@ function AuthPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
   const go = (role: string) => navigate({ to: role === "manager" ? "/manager" : "/dashboard" });
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (mode === "signin") {
-      const user = signIn(email, password);
-      if (!user) return setError("Incorrect email or password.");
-      go(user.role);
-    } else {
-      if (!name.trim()) return setError("Please enter your full name.");
-      if (password.length < 6) return setError("Password must be at least 6 characters.");
-      const res = signUp({ name, email, password, phone });
-      if (!res.ok) return setError(res.error);
-      go("client");
+    setBusy(true);
+    try {
+      if (mode === "signin") {
+        const res = await signInAccount(email, password);
+        if (!res.ok) return setError(res.error);
+        go(res.account.role);
+      } else {
+        if (!name.trim()) return setError("Please enter your full name.");
+        if (password.length < 6) return setError("Password must be at least 6 characters.");
+        const res = await signUpAccount({ name, email, password, phone });
+        if (!res.ok) return setError(res.error);
+        go(res.account.role);
+      }
+    } finally {
+      setBusy(false);
     }
   };
 
+  const CREDENTIALS = [
+    { role: "manager" as const, email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
+  ];
+
   const useDemo = (i: number) => {
     setMode("signin");
-    setEmail(DEMO_ACCOUNTS[i].email);
-    setPassword(DEMO_ACCOUNTS[i].password);
+    setEmail(CREDENTIALS[i]!.email);
+    setPassword(CREDENTIALS[i]!.password);
     setError("");
   };
 
@@ -97,8 +107,8 @@ function AuthPage() {
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} className={inputCls()} placeholder="••••••••" />
             </Labelled>
             {error && <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
-            <button type="submit" className="btn-primary w-full rounded-full px-6 py-3 text-sm font-bold">
-              {mode === "signin" ? "Sign in" : "Create account"}
+            <button type="submit" disabled={busy} className="btn-primary w-full rounded-full px-6 py-3 text-sm font-bold disabled:opacity-60">
+              {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
             </button>
           </form>
         </div>
@@ -106,10 +116,10 @@ function AuthPage() {
         <div className="space-y-6">
           <div className="card p-8">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[color:var(--color-leaf-dark)]">
-              <KeyRound className="h-4 w-4" /> Demo sign-in details
+              <KeyRound className="h-4 w-4" /> Admin sign-in details
             </div>
             <div className="mt-5 space-y-4">
-              {DEMO_ACCOUNTS.map((a, i) => (
+              {CREDENTIALS.map((a, i) => (
                 <div key={a.email} className="rounded-2xl border border-[color:var(--color-line)] bg-[color:var(--color-mint)] p-5">
                   <div className="flex items-center gap-2 text-sm font-black text-[color:var(--color-navy)]">
                     {a.role === "manager" ? <ShieldCheck className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
