@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { money, INTEREST_RATE } from "@/lib/demo-auth";
 import { SiteNav, SiteFooter } from "@/components/SiteNav";
 import { Wizard } from "@/components/Wizard";
+import { DEFAULT_PRODUCT_ID } from "@/lib/loan-products";
 import heroVendor from "@/assets/hero-vendor.jpg";
 import farmer from "@/assets/farmer-phone.jpg";
 import shopOwner from "@/assets/shop-owner.jpg";
@@ -269,7 +270,7 @@ function Landing() {
       <SiteFooter />
 
       {wizardOpen && (
-        <Wizard onClose={() => setWizardOpen(false)} loan={{ amount, term, pct, serviceFee: serviceFee, monthly }} />
+        <Wizard onClose={() => setWizardOpen(false)} loan={{ amount, term, pct, serviceFee: serviceFee, monthly, productId: DEFAULT_PRODUCT_ID }} />
       )}
     </div>
   );

@@ -84,7 +84,7 @@ function ManagerDashboard() {
                       <StatusPill status={a.status} />
                     </div>
                     <div className="mt-1 text-sm text-[color:var(--color-muted)]">
-                      {a.id} · {money(a.amount)} over {a.term} months · {a.purpose}
+                      {a.id} · {money(a.amount)} over {a.term} months · {a.productTitle ?? a.purpose}
                     </div>
                     <div className="mt-1 text-xs text-[color:var(--color-muted)]">
                       Service fee {money(a.serviceFee)} ({a.serviceFeePct}%) · {a.provider} {a.msisdn} · {a.email}

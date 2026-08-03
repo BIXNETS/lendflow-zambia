@@ -2,14 +2,19 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowRight, User, Mail, Phone, Smartphone, CheckCircle2, Loader } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { currentUser, money, saveApplication, computeLoan, INTEREST_LABEL, type Application } from "@/lib/demo-auth";
+import { currentUser, money, saveApplication, computeLoan, type Application } from "@/lib/demo-auth";
+import { LOAN_PRODUCTS, getProduct, fitToProduct, DEFAULT_PRODUCT_ID } from "@/lib/loan-products";
 
-export type LoanCtx = { amount: number; term: number; pct: number; serviceFee: number; monthly: number };
+export type LoanCtx = {
+  amount: number; term: number; pct: number; serviceFee: number; monthly: number;
+  productId?: string;
+};
 
 /* ---------------- Wizard ---------------- */
 type Form = {
   firstName: string; lastName: string; email: string; phone: string;
-  purpose: string; provider: string; msisdn: string; consent: boolean;
+  productId: string; provider: string; msisdn: string; consent: boolean;
+  eligibility: boolean;
 };
 
 export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }) {
@@ -19,8 +24,27 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
   const [form, setForm] = useState<Form>({
     firstName: user?.name.split(" ")[0] ?? "", lastName: user?.name.split(" ")[1] ?? "",
     email: user?.email ?? "", phone: user?.phone ?? "",
-    purpose: "", provider: "", msisdn: "", consent: false,
+    productId: loan.productId ?? DEFAULT_PRODUCT_ID,
+    provider: "", msisdn: "", consent: false, eligibility: false,
   });
+  const product = getProduct(form.productId);
+  const [amount, setAmount] = useState(() => fitToProduct(product, loan.amount, loan.term).amount);
+  const [term, setTerm] = useState(() => fitToProduct(product, loan.amount, loan.term).term);
+
+  // Keep the requested amount/term inside the selected product's lending rules.
+  useEffect(() => {
+    const fit = fitToProduct(product, amount, term);
+    if (fit.amount !== amount) setAmount(fit.amount);
+    if (fit.term !== term) setTerm(fit.term);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id]);
+
+  const calc = computeLoan(amount, product.serviceFeePct, term, product.interestRate);
+  const L = {
+    amount, term, pct: product.serviceFeePct, serviceFee: calc.serviceFee,
+    monthly: calc.monthly, interest: calc.interest, total: calc.totalRepayment, rate: product.interestRate,
+    rateLabel: (product.interestRate * 100).toFixed(1).replace(/\.0$/, "") + "%",
+  };
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<"idle" | "processing" | "done">("idle");
 
@@ -41,7 +65,15 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
       if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Valid email required";
       if (!/^[+\d\s()-]{7,}$/.test(form.phone)) e.phone = "Valid phone required";
     }
-    if (s === 2) { if (!form.purpose) e.purpose = "Please select a purpose"; }
+    if (s === 2) {
+      if (!form.productId) e.productId = "Please select a service";
+      if (product.soon) e.productId = `${product.title} is not lending yet — pick another service`;
+      if (amount < product.minAmount || amount > product.maxAmount)
+        e.amount = `${product.title}: ${money(product.minAmount)} – ${money(product.maxAmount)}`;
+      if (term < product.minTerm || term > product.maxTerm)
+        e.term = `${product.title}: ${product.minTerm} – ${product.maxTerm} months`;
+      if (!form.eligibility) e.eligibility = "Please confirm you meet the requirements";
+    }
     if (s === 3) {
       if (!form.provider) e.provider = "Choose a mobile money provider";
       if (!/^[+\d\s()-]{7,}$/.test(form.msisdn)) e.msisdn = "Valid mobile money number required";
@@ -60,15 +92,16 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
       id: "LF-" + Math.floor(10000 + Math.random() * 89999),
       email: form.email.trim().toLowerCase(),
       name: `${form.firstName} ${form.lastName}`.trim(),
-      amount: loan.amount, term: loan.term,
-      serviceFeePct: loan.pct, serviceFee: loan.serviceFee,
-      provider: form.provider, msisdn: form.msisdn, purpose: form.purpose,
+      amount: L.amount, term: L.term,
+      serviceFeePct: L.pct, serviceFee: L.serviceFee,
+      productId: product.id, productTitle: product.title, interestRate: product.interestRate,
+      provider: form.provider, msisdn: form.msisdn, purpose: product.title,
       status: "under_review", createdAt: new Date().toISOString(),
     };
     setTimeout(() => { saveApplication(app); setStatus("done"); }, 1800);
   };
 
-  const stepTitle = ["Your details", "Loan purpose", "Service fee payment", "Review & submit"][step - 1];
+  const stepTitle = ["Your details", "Choose your service", "Service fee payment", "Review & submit"][step - 1];
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-6">
@@ -94,7 +127,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
         <div className="max-h-[70vh] overflow-y-auto px-6 py-6">
           {status === "processing" && <ProcessingView />}
           {status === "done" && (
-            <SuccessView serviceFee={loan.serviceFee} onDashboard={() => { onClose(); navigate({ to: "/dashboard" }); }} />
+            <SuccessView serviceFee={L.serviceFee} onDashboard={() => { onClose(); navigate({ to: "/dashboard" }); }} />
           )}
 
           {status === "idle" && step === 1 && (
@@ -116,36 +149,73 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
 
           {status === "idle" && step === 2 && (
             <div className="space-y-5">
-              <div className="rounded-2xl bg-[color:var(--color-mint)] p-5">
-                <div className="text-sm font-bold text-[color:var(--color-navy)]">Your requested loan</div>
-                <div className="mt-3 grid grid-cols-3 gap-3">
-                  <ReviewItem label="Amount" value={money(loan.amount)} />
-                  <ReviewItem label="Term" value={`${loan.term} months`} />
-                  <ReviewItem label="Interest" value={INTEREST_LABEL} />
-                </div>
-              </div>
-              <Breakdown loan={loan} />
-              <Field label="Loan type" error={errors.purpose} full>
-                <select value={form.purpose} onChange={e => update("purpose", e.target.value)} className={inputCls(errors.purpose)}>
-                  <option value="">Select…</option>
-                  <option>Personal loan</option><option>Business loan</option><option>Agri loan</option><option>Civil servant loan</option><option>Scheme loan</option><option>Collateral backed loan</option><option>Salary advance</option>
-                  <option>Education loan</option>
+              <Field label="Service" error={errors.productId} full>
+                <select value={form.productId} onChange={e => update("productId", e.target.value)} className={inputCls(errors.productId)}>
+                  {LOAN_PRODUCTS.map(p => (
+                    <option key={p.id} value={p.id} disabled={p.soon}>
+                      {p.title}{p.soon ? " (coming soon)" : ` · ${p.serviceFeePct}% service fee`}
+                    </option>
+                  ))}
                 </select>
               </Field>
-            </div>
 
+              <div className="rounded-2xl bg-[color:var(--color-mint)] p-5">
+                <div className="text-sm font-bold text-[color:var(--color-navy)]">{product.title} rules</div>
+                <div className="mt-3 grid grid-cols-3 gap-3">
+                  <ReviewItem label="Amount range" value={`${money(product.minAmount)} – ${money(product.maxAmount)}`} />
+                  <ReviewItem label="Term range" value={`${product.minTerm} – ${product.maxTerm} mo`} />
+                  <ReviewItem label="Service fee" value={`${product.serviceFeePct}%`} />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Loan amount" error={errors.amount}>
+                  <input type="number" inputMode="numeric" value={amount} min={product.minAmount} max={product.maxAmount}
+                    onChange={e => setAmount(Number(e.target.value))}
+                    onBlur={() => setAmount(a => fitToProduct(product, a, term).amount)}
+                    className={inputCls(errors.amount)} />
+                </Field>
+                <Field label="Term (months)" error={errors.term}>
+                  <input type="number" inputMode="numeric" value={term} min={product.minTerm} max={product.maxTerm}
+                    onChange={e => setTerm(Number(e.target.value))}
+                    onBlur={() => setTerm(t => fitToProduct(product, amount, t).term)}
+                    className={inputCls(errors.term)} />
+                </Field>
+              </div>
+
+              <Breakdown loan={L} />
+
+              <div className="rounded-2xl border border-[color:var(--color-line)] p-5">
+                <div className="text-xs font-bold uppercase tracking-widest text-[color:var(--color-leaf-dark)]">
+                  {product.title} eligibility
+                </div>
+                <ul className="mt-3 space-y-2 text-sm text-[color:var(--color-muted)]">
+                  {product.eligibility.map(r => (
+                    <li key={r} className="flex items-start gap-2">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--color-leaf)]" /> {r}
+                    </li>
+                  ))}
+                </ul>
+                <label className="mt-4 flex items-start gap-3 text-sm">
+                  <input type="checkbox" checked={form.eligibility} onChange={e => update("eligibility", e.target.checked)}
+                    className="mt-1 h-4 w-4 accent-[color:var(--color-leaf)]" />
+                  <span className="text-[color:var(--color-muted)]">I confirm I meet these {product.title.toLowerCase()} requirements.</span>
+                </label>
+                {errors.eligibility && <p className="mt-1 text-xs font-semibold text-red-600">{errors.eligibility}</p>}
+              </div>
+            </div>
           )}
 
           {status === "idle" && step === 3 && (
             <div className="space-y-5">
               <div className="rounded-2xl border border-[color:var(--color-leaf)]/40 bg-[color:var(--color-mint)] p-5">
                 <div className="text-xs font-bold uppercase tracking-widest text-[color:var(--color-leaf-dark)]">Service fee due now</div>
-                <div className="mt-1 text-3xl font-black">{money(loan.serviceFee)}</div>
+                <div className="mt-1 text-3xl font-black">{money(L.serviceFee)}</div>
                 <p className="mt-1 text-xs text-[color:var(--color-muted)]">
-                  {loan.pct}% of {money(loan.amount)}, paid once up front. Your loan then carries a flat {INTEREST_LABEL} interest — you repay {money(computeLoan(loan.amount, loan.pct, loan.term).totalRepayment)} in total.
+                  {L.pct}% of {money(L.amount)} for your {product.title.toLowerCase()}, paid once up front. Your loan then carries a flat {L.rateLabel} interest — you repay {money(L.total)} in total.
                 </p>
               </div>
-              <Breakdown loan={loan} />
+              <Breakdown loan={L} />
 
               <Field label="Mobile money provider" error={errors.provider} full>
                 <div className="grid gap-3 sm:grid-cols-3">
@@ -167,7 +237,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                 <input type="checkbox" checked={form.consent} onChange={e => update("consent", e.target.checked)}
                   className="mt-1 h-4 w-4 accent-[color:var(--color-leaf)]" />
                 <span className="text-[color:var(--color-muted)]">
-                  I authorise LendFlow Africa to collect the {money(loan.serviceFee)} service fee from this wallet, refundable if declined.
+                  I authorise LendFlow Africa to collect the {money(L.serviceFee)} service fee from this wallet, refundable if declined.
                 </span>
               </label>
               {errors.consent && <p className="text-sm text-red-600">{errors.consent}</p>}
@@ -179,10 +249,10 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
               <div className="card p-5">
                 <div className="text-xs font-bold uppercase tracking-widest text-[color:var(--color-leaf-dark)]">Loan summary</div>
                 <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  <ReviewItem label="Amount" value={money(loan.amount)} />
-                  <ReviewItem label="Term" value={`${loan.term} mo`} />
-                  <ReviewItem label="Interest" value={INTEREST_LABEL} />
-                  <ReviewItem label="Service fee" value={`${money(loan.serviceFee)} (${loan.pct}%)`} />
+                  <ReviewItem label="Amount" value={money(L.amount)} />
+                  <ReviewItem label="Term" value={`${L.term} mo`} />
+                  <ReviewItem label="Interest" value={L.rateLabel} />
+                  <ReviewItem label="Service fee" value={`${money(L.serviceFee)} (${L.pct}%)`} />
                 </div>
               </div>
               <div className="card p-5">
@@ -191,7 +261,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                   <ReviewItem label="Name" value={`${form.firstName} ${form.lastName}`} />
                   <ReviewItem label="Email" value={form.email} />
                   <ReviewItem label="Phone" value={form.phone} />
-                  <ReviewItem label="Purpose" value={form.purpose} />
+                  <ReviewItem label="Service" value={product.title} />
                   <ReviewItem label="Provider" value={form.provider} />
                   <ReviewItem label="Wallet" value={form.msisdn} />
                 </div>
@@ -281,8 +351,8 @@ export function inputCls(error?: string) {
   );
 }
 
-function Breakdown({ loan }: { loan: LoanCtx }) {
-  const b = computeLoan(loan.amount, loan.pct, loan.term);
+function Breakdown({ loan }: { loan: { amount: number; pct: number; term: number; rate?: number; rateLabel?: string } }) {
+  const b = computeLoan(loan.amount, loan.pct, loan.term, loan.rate);
   return (
     <dl className="space-y-2 rounded-2xl border border-[color:var(--color-line)] bg-[color:var(--color-sky)]/60 p-4 text-sm">
       <div className="flex items-center justify-between gap-3">
@@ -290,7 +360,7 @@ function Breakdown({ loan }: { loan: LoanCtx }) {
         <dd className="font-bold tabular-nums">{money(b.principal)}</dd>
       </div>
       <div className="flex items-center justify-between gap-3">
-        <dt className="text-[color:var(--color-muted)]">Interest ({INTEREST_LABEL} flat)</dt>
+        <dt className="text-[color:var(--color-muted)]">Interest ({loan.rateLabel ?? "2.5%"} flat)</dt>
         <dd className="font-bold tabular-nums">{money(b.interest)}</dd>
       </div>
       <div className="flex items-center justify-between gap-3 border-t border-[color:var(--color-line)] pt-2">
