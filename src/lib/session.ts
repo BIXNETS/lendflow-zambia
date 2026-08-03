@@ -90,3 +90,29 @@ export function useAccount() {
 
   return { account, loading: account === undefined };
 }
+
+/**
+ * Identity verification status for the signed-in borrower.
+ * Returns "signed_out" when there is no session, otherwise the profile's
+ * kyc_status ("pending" | "approved" | "rejected"). null while loading.
+ */
+export function useKycStatus() {
+  const [status, setStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) { if (alive) setStatus("signed_out"); return; }
+      const { data } = await supabase.from("profiles").select("kyc_status").eq("id", u.user.id).maybeSingle();
+      if (alive) setStatus(data?.kyc_status ?? "pending");
+    };
+    void load();
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT") void load();
+    });
+    return () => { alive = false; data.subscription.unsubscribe(); };
+  }, []);
+
+  return status;
+}
