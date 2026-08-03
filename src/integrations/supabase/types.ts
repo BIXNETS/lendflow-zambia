@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      country_settings: {
+        Row: {
+          commitment_pct_max: number
+          commitment_pct_min: number
+          country_code: string
+          country_name: string
+          created_at: string
+          currency_code: string
+          currency_symbol: string
+          eligibility_rules: Json
+          id: string
+          is_active: boolean
+          max_loan_amount: number
+          max_term_months: number
+          min_loan_amount: number
+          min_term_months: number
+          payment_methods: Json
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          commitment_pct_max?: number
+          commitment_pct_min?: number
+          country_code: string
+          country_name: string
+          created_at?: string
+          currency_code: string
+          currency_symbol: string
+          eligibility_rules?: Json
+          id?: string
+          is_active?: boolean
+          max_loan_amount?: number
+          max_term_months?: number
+          min_loan_amount?: number
+          min_term_months?: number
+          payment_methods?: Json
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          commitment_pct_max?: number
+          commitment_pct_min?: number
+          country_code?: string
+          country_name?: string
+          created_at?: string
+          currency_code?: string
+          currency_symbol?: string
+          eligibility_rules?: Json
+          id?: string
+          is_active?: boolean
+          max_loan_amount?: number
+          max_term_months?: number
+          min_loan_amount?: number
+          min_term_months?: number
+          payment_methods?: Json
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       kyc_documents: {
         Row: {
           created_at: string
@@ -199,7 +259,10 @@ export type Database = {
       }
       loans: {
         Row: {
+          amount_paid: number
+          country_code: string | null
           created_at: string
+          currency_code: string
           disbursed_at: string | null
           due_at: string | null
           id: string
@@ -214,7 +277,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          amount_paid?: number
+          country_code?: string | null
           created_at?: string
+          currency_code?: string
           disbursed_at?: string | null
           due_at?: string | null
           id?: string
@@ -229,7 +295,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          amount_paid?: number
+          country_code?: string | null
           created_at?: string
+          currency_code?: string
           disbursed_at?: string | null
           due_at?: string | null
           id?: string
@@ -249,6 +318,75 @@ export type Database = {
             columns: ["tier_id"]
             isOneToOne: false
             referencedRelation: "loan_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_transactions: {
+        Row: {
+          amount: number
+          application_id: string | null
+          created_at: string
+          currency_code: string
+          id: string
+          loan_id: string | null
+          msisdn: string | null
+          occurred_at: string
+          provider: string
+          provider_ref: string
+          raw_payload: Json
+          status: string
+          tx_type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          application_id?: string | null
+          created_at?: string
+          currency_code: string
+          id?: string
+          loan_id?: string | null
+          msisdn?: string | null
+          occurred_at?: string
+          provider: string
+          provider_ref: string
+          raw_payload?: Json
+          status?: string
+          tx_type: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          application_id?: string | null
+          created_at?: string
+          currency_code?: string
+          id?: string
+          loan_id?: string | null
+          msisdn?: string | null
+          occurred_at?: string
+          provider?: string
+          provider_ref?: string
+          raw_payload?: Json
+          status?: string
+          tx_type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "loan_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_transactions_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
             referencedColumns: ["id"]
           },
         ]
@@ -336,11 +474,48 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_events: {
+        Row: {
+          created_at: string
+          error: string | null
+          event_id: string
+          event_type: string | null
+          id: string
+          payload: Json
+          processed_at: string | null
+          provider: string
+          signature_valid: boolean
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          event_id: string
+          event_type?: string | null
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          provider: string
+          signature_valid?: boolean
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          event_id?: string
+          event_type?: string | null
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          provider?: string
+          signature_valid?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      claim_admin: { Args: never; Returns: boolean }
       evaluate_tier_eligibility: {
         Args: { _user_id: string }
         Returns: {

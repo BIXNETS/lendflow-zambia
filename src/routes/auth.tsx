@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Brand } from "@/components/Brand";
 import { DEMO_ACCOUNTS, signIn, signUp } from "@/lib/demo-auth";
-import { inputCls } from "./index";
+import { inputCls } from "@/components/Wizard";
 import { cn } from "@/lib/utils";
 import { KeyRound, ShieldCheck, UserPlus } from "lucide-react";
 
