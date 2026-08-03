@@ -30,6 +30,13 @@
 }
 
 html, body, #root { min-height: 100%; }
+
+/* Display type — Lupiya-style geometric sans for headings and CTAs */
+h1, h2, h3, h4, h5, h6, .font-display, button, .btn-primary, .btn-navy {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+}
+
 body {
   background:
     radial-gradient(60rem 40rem at 85% -10%, #d9f5e0 0%, transparent 60%),
