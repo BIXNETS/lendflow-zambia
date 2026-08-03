@@ -20,6 +20,20 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+/** Turn raw auth errors into something a borrower can act on. */
+function friendly(message: string) {
+  const m = message.toLowerCase();
+  if (m.includes("invalid login")) return "Email or password is incorrect.";
+  if (m.includes("email not confirmed")) return "Please confirm your email address, then sign in.";
+  if (m.includes("already registered") || m.includes("already been registered"))
+    return "That email already has an account — switch to Sign in.";
+  if (m.includes("weak") || m.includes("easy to guess"))
+    return "That password is too easy to guess. Try a longer one with numbers and symbols.";
+  if (m.includes("rate limit") || m.includes("too many"))
+    return "Too many attempts. Please wait a minute and try again.";
+  return message;
+}
+
 function AuthPage() {
   const navigate = useNavigate();
   const { account } = useAccount();
