@@ -5,7 +5,7 @@ import {
   HeartHandshake, Smartphone, Quote, Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { money } from "@/lib/demo-auth";
+import { money, INTEREST_RATE } from "@/lib/demo-auth";
 import { SiteNav, SiteFooter } from "@/components/SiteNav";
 import { Wizard } from "@/components/Wizard";
 import heroVendor from "@/assets/hero-vendor.jpg";
