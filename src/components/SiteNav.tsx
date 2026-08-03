@@ -39,11 +39,12 @@ export function SiteNav({ onApply }: { onApply?: () => void }) {
 
         <div className="flex items-center gap-2">
           <Link
-            to="/auth"
+            to={account ? home : "/auth"}
             className="hidden rounded-lg border border-[color:var(--color-line)] px-4 py-2 text-sm font-bold text-[color:var(--color-navy)] transition hover:bg-[color:var(--color-sky)] sm:block"
           >
-            Login
+            {account ? "My dashboard" : "Login"}
           </Link>
+
           <ApplyButton onApply={onApply} />
           <button
             aria-label="Toggle menu"
