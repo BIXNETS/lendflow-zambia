@@ -125,6 +125,7 @@ function AuthPage() {
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} className={inputCls()} placeholder="••••••••" />
             </Labelled>
             {error && <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
+            {notice && <p role="status" className="rounded-xl bg-[color:var(--color-mint)] px-3 py-2 text-sm font-semibold text-[color:var(--color-leaf-dark)]">{notice}</p>}
             <button type="submit" disabled={busy} className="btn-primary w-full rounded-full px-6 py-3 text-sm font-bold disabled:opacity-60">
               {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
             </button>
