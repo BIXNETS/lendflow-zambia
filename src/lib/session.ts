@@ -2,9 +2,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import type { Account, Role } from "@/lib/demo-auth";
 
-/** Admin / back-office credentials seeded for this project. */
-export const ADMIN_EMAIL = "admin@lendflowafrica.com";
-export const ADMIN_PASSWORD = "Admin@2026!";
 
 export type SignResult = { ok: true; account: Account } | { ok: false; error: string };
 
