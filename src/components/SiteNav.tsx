@@ -64,8 +64,8 @@ export function SiteNav({ onApply }: { onApply?: () => void }) {
               {l.label}
             </Link>
           ))}
-          <Link to="/auth" onClick={() => setOpen(false)} className="block py-2.5 text-sm font-semibold text-[color:var(--color-navy)]">
-            Login
+          <Link to={account ? home : "/auth"} onClick={() => setOpen(false)} className="block py-2.5 text-sm font-semibold text-[color:var(--color-navy)]">
+            {account ? "My dashboard" : "Login"}
           </Link>
         </nav>
       )}
