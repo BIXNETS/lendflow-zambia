@@ -39,7 +39,7 @@ function About() {
             We started LendFlow Africa because too many hard-working people are locked out of
             fair credit. Banks ask for paperwork they don't have; lenders charge rates they
             can't afford. We built a simpler path: apply from your phone, pay a one-time
-            commitment instead of interest, and get funded to your mobile wallet.
+            one-time service fee plus a flat 2.5% interest, and get funded to your mobile wallet.
           </p>
           <p className="mt-4 text-[color:var(--color-muted)]">
             Today we serve borrowers in Zambia, Ghana, Kenya and Nigeria — with country settings,

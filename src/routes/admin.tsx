@@ -10,7 +10,7 @@ export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
       { title: "Country Settings — LendFlow Africa Admin" },
-      { name: "description", content: "Configure currency, loan limits, commitment ranges, eligibility rules and mobile money payment methods for each LendFlow country." },
+      { name: "description", content: "Configure currency, loan limits, service fee ranges, eligibility rules and mobile money payment methods for each LendFlow country." },
       { property: "og:title", content: "LendFlow Africa Admin — Country Settings" },
       { property: "og:description", content: "Manage per-country lending configuration without code changes." },
       { property: "og:type", content: "website" },
@@ -149,7 +149,7 @@ function AdminSettings() {
       <main className="mx-auto max-w-7xl px-6 py-10">
         <h1 className="text-3xl font-black tracking-tight">Country settings</h1>
         <p className="mt-2 text-sm text-[color:var(--color-muted)]">
-          Currency, loan limits, commitment ranges, eligibility rules and payment methods — configurable per market, no code changes.
+          Currency, loan limits, service fee ranges, eligibility rules and payment methods — configurable per market, no code changes.
         </p>
 
         {!signedIn && (
@@ -206,8 +206,8 @@ function AdminSettings() {
                   <F label="Max loan amount"><Num v={draft.max_loan_amount} on={(v) => set("max_loan_amount", v)} /></F>
                   <F label="Min term (months)"><Num v={draft.min_term_months} on={(v) => set("min_term_months", v)} /></F>
                   <F label="Max term (months)"><Num v={draft.max_term_months} on={(v) => set("max_term_months", v)} /></F>
-                  <F label="Commitment % min"><Num v={draft.commitment_pct_min} on={(v) => set("commitment_pct_min", v)} /></F>
-                  <F label="Commitment % max"><Num v={draft.commitment_pct_max} on={(v) => set("commitment_pct_max", v)} /></F>
+                  <F label="Service fee % min"><Num v={draft.commitment_pct_min} on={(v) => set("commitment_pct_min", v)} /></F>
+                  <F label="Service fee % max"><Num v={draft.commitment_pct_max} on={(v) => set("commitment_pct_max", v)} /></F>
                 </div>
 
                 <h2 className="mt-8 text-xs font-bold uppercase tracking-widest text-[color:var(--color-muted)]">Eligibility rules</h2>

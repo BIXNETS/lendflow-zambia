@@ -13,7 +13,7 @@ export const Route = createFileRoute("/how-it-works")({
       { title: "How It Works — Get a LendFlow Africa Loan in 3 Steps" },
       { name: "description", content: "Apply in minutes, get approved fast and receive your money directly in your mobile wallet. See how a LendFlow Africa micro loan works." },
       { property: "og:title", content: "How It Works — LendFlow Africa" },
-      { property: "og:description", content: "Apply, get approved, get funded. Three simple steps to a 0% interest mobile money loan." },
+      { property: "og:description", content: "Apply, get approved, get funded. Three simple steps to a 2.5% interest mobile money loan." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -62,7 +62,7 @@ function HowItWorks() {
             <h2 className="text-2xl font-black tracking-tight">Loans that fit your life</h2>
             <p className="mt-3 text-sm text-[color:var(--color-muted)]">
               Whether you need a little boost or a big push, LendFlow Africa is here for you.
-              Weekly, fortnightly or monthly repayments — at 0% interest.
+              Weekly, fortnightly or monthly repayments — at 2.5% interest.
             </p>
             <ApplyButton onApply={() => setOpen(true)} className="mt-5" />
           </div>

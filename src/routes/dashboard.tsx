@@ -7,9 +7,9 @@ export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
       { title: "My dashboard — LendFlow Africa" },
-      { name: "description", content: "Track your LendFlow Africa loan applications, commitment payments and 0% interest repayment schedule." },
+      { name: "description", content: "Track your LendFlow Africa loan applications, service fee payments and 2.5% interest repayment schedule." },
       { property: "og:title", content: "My dashboard — LendFlow Africa" },
-      { property: "og:description", content: "Track applications, commitments and repayments." },
+      { property: "og:description", content: "Track applications, service fees and repayments." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -41,13 +41,13 @@ function ClientDashboard() {
     <AppShell user={user} subtitle="Borrower account">
       <div className="rise">
         <h1 className="text-3xl font-black tracking-tight">Hello, {user.name.split(" ")[0]} 👋</h1>
-        <p className="mt-1 text-[color:var(--color-muted)]">All LendFlow loans are 0% interest — you repay only what you borrow.</p>
+        <p className="mt-1 text-[color:var(--color-muted)]">All LendFlow loans carry a flat 2.5% interest — no surprises.</p>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <KpiCard label="Applications" value={String(apps.length)} hint="Lifetime" tone="sky" />
           <KpiCard label="Outstanding" value={money(outstanding)} hint="Principal only" />
-          <KpiCard label="Commitments paid" value={money(paidCommitment)} tone="sun" />
-          <KpiCard label="Interest charged" value="K0" hint="0% forever" />
+          <KpiCard label="Service fees paid" value={money(paidCommitment)} tone="sun" />
+          <KpiCard label="Interest charged" value="2.5%" hint="flat, on the loan amount" />
         </div>
 
         <div className="mt-8 card overflow-hidden">
@@ -57,7 +57,7 @@ function ClientDashboard() {
           </div>
           {apps.length === 0 ? (
             <p className="px-6 py-10 text-center text-sm text-[color:var(--color-muted)]">
-              No applications yet. Start one from the home page — you'll pay a 10–15% commitment and borrow at 0%.
+              No applications yet. Start one from the home page — you'll pay a 10–15% service fee and a flat 2.5% interest.
             </p>
           ) : (
             <div className="divide-y divide-[color:var(--color-line)]">
@@ -69,7 +69,7 @@ function ClientDashboard() {
                       <span className="text-xs text-[color:var(--color-muted)]">· {a.term} months · {a.purpose}</span>
                     </div>
                     <div className="mt-1 text-xs text-[color:var(--color-muted)]">
-                      {a.id} · commitment {money(a.commitment)} ({a.commitmentPct}%) via {a.provider}
+                      {a.id} · service fee {money(a.commitment)} ({a.commitmentPct}%) via {a.provider}
                     </div>
                   </div>
                   <StatusPill status={a.status} />
