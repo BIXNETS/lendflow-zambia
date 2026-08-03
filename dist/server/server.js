@@ -18,7 +18,7 @@ var defaultStreamHandler = defineHandlerCallback(({ request, router, responseHea
   responseHeaders,
   children: /* @__PURE__ */ jsx(StartServer, { router })
 }));
-var GLOBAL_EVENT_STORAGE_KEY = Symbol.for("tanstack-start:event-storage");
+var GLOBAL_EVENT_STORAGE_KEY = /* @__PURE__ */ Symbol.for("tanstack-start:event-storage");
 var globalObj$1 = globalThis;
 if (!globalObj$1[GLOBAL_EVENT_STORAGE_KEY]) globalObj$1[GLOBAL_EVENT_STORAGE_KEY] = new AsyncLocalStorage();
 var eventStorage = globalObj$1[GLOBAL_EVENT_STORAGE_KEY];
@@ -76,8 +76,7 @@ function getResponse() {
 }
 var HEADERS = { TSS_SHELL: "X-TSS_SHELL" };
 async function getStartManifest(matchedRoutes) {
-  var _a;
-  const { tsrStartManifest } = await import("./assets/_tanstack-start-manifest_v-BBBvvlS7.js");
+  const { tsrStartManifest } = await import("./assets/_tanstack-start-manifest_v-Co9-Gbpc.js");
   const startManifest = tsrStartManifest();
   let routes = startManifest.routes;
   routes[rootRouteId];
@@ -87,7 +86,7 @@ async function getStartManifest(matchedRoutes) {
     const result = {};
     if (v.preloads && v.preloads.length > 0) result.preloads = v.preloads;
     if (v.scripts && v.scripts.length > 0) result.scripts = v.scripts;
-    if ((_a = v.css) == null ? void 0 : _a.length) result.css = v.css;
+    if (v.css?.length) result.css = v.css;
     if (result.preloads || result.scripts || result.css) manifestRoutes[k] = result;
   }
   return {
@@ -99,43 +98,43 @@ async function getStartManifest(matchedRoutes) {
 const manifest = {
   "26f66c727a20beb926090e5f296bd76c459acb1817bd06a9fbc58ac17ce39621": {
     functionName: "markNotificationsRead_createServerFn_handler",
-    importer: () => import("./assets/lending.functions-wv4hHn7F.js")
+    importer: () => import("./assets/lending.functions-Cx0OcdzW.js")
   },
   "40eaedf16b61a51373c117df29a15f5f65b3b9c82e5650b9b3e7348299a56dac": {
     functionName: "saveKycDocument_createServerFn_handler",
-    importer: () => import("./assets/lending.functions-wv4hHn7F.js")
+    importer: () => import("./assets/lending.functions-Cx0OcdzW.js")
   },
   "4604561a92bea487cc5879f60ae42e12cfcf41feaf127f0dfdb704c248901dea": {
     functionName: "disburseLoan_createServerFn_handler",
-    importer: () => import("./assets/lending.functions-wv4hHn7F.js")
+    importer: () => import("./assets/lending.functions-Cx0OcdzW.js")
   },
   "5707a8ca9e5b8c17feb2f45051f5408a4f289fe7c7cf407ced2e47add458b3e8": {
     functionName: "getAdminOverview_createServerFn_handler",
-    importer: () => import("./assets/lending.functions-wv4hHn7F.js")
+    importer: () => import("./assets/lending.functions-Cx0OcdzW.js")
   },
   "7e9e1e8d2fc604a3c0d5229870fff0c8b906a127ce9b294361362350223fa6a8": {
     functionName: "repayLoan_createServerFn_handler",
-    importer: () => import("./assets/lending.functions-wv4hHn7F.js")
+    importer: () => import("./assets/lending.functions-Cx0OcdzW.js")
   },
   "973e58cbb43fedd94c0c3a00b7143d462fc369c8a2dca91fd86246abb445c31c": {
     functionName: "reviewKycDocument_createServerFn_handler",
-    importer: () => import("./assets/lending.functions-wv4hHn7F.js")
+    importer: () => import("./assets/lending.functions-Cx0OcdzW.js")
   },
   "a605870b28b0840006a9ca8e04eaa20ae34468b6889057f5578b077dab9006df": {
     functionName: "getMyOverview_createServerFn_handler",
-    importer: () => import("./assets/lending.functions-wv4hHn7F.js")
+    importer: () => import("./assets/lending.functions-Cx0OcdzW.js")
   },
   "aa97e5af1c66b8062b75b520c19ad13ed33824731c9a49519f6968b5fa63e027": {
     functionName: "submitApplication_createServerFn_handler",
-    importer: () => import("./assets/lending.functions-wv4hHn7F.js")
+    importer: () => import("./assets/lending.functions-Cx0OcdzW.js")
   },
   "ab016b598b2f75c8ce0a45149f7656046641e874016907f171d2642ec68f8c55": {
     functionName: "decideApplication_createServerFn_handler",
-    importer: () => import("./assets/lending.functions-wv4hHn7F.js")
+    importer: () => import("./assets/lending.functions-Cx0OcdzW.js")
   },
   "c53af2bfe57a2a2839844d83e737c99575284885304aa960e134d3790dfc9a6d": {
     functionName: "adminRecordRepayment_createServerFn_handler",
-    importer: () => import("./assets/lending.functions-wv4hHn7F.js")
+    importer: () => import("./assets/lending.functions-Cx0OcdzW.js")
   }
 };
 async function getServerFnById(id, access) {
@@ -154,8 +153,8 @@ async function getServerFnById(id, access) {
   return action;
 }
 var TSS_FORMDATA_CONTEXT = "__TSS_CONTEXT";
-var TSS_SERVER_FUNCTION = Symbol.for("TSS_SERVER_FUNCTION");
-var TSS_SERVER_FUNCTION_FACTORY = Symbol.for("TSS_SERVER_FUNCTION_FACTORY");
+var TSS_SERVER_FUNCTION = /* @__PURE__ */ Symbol.for("TSS_SERVER_FUNCTION");
+var TSS_SERVER_FUNCTION_FACTORY = /* @__PURE__ */ Symbol.for("TSS_SERVER_FUNCTION_FACTORY");
 var X_TSS_SERIALIZED = "x-tss-serialized";
 var X_TSS_RAW_RESPONSE = "x-tss-raw";
 var TSS_CONTENT_TYPE_FRAMED = "application/x-tss-framed";
@@ -190,7 +189,7 @@ function createNullProtoObject(source) {
   for (const key of Object.keys(source)) if (isSafeKey(key)) obj[key] = source[key];
   return obj;
 }
-var GLOBAL_STORAGE_KEY = Symbol.for("tanstack-start:start-storage-context");
+var GLOBAL_STORAGE_KEY = /* @__PURE__ */ Symbol.for("tanstack-start:start-storage-context");
 var globalObj = globalThis;
 if (!globalObj[GLOBAL_STORAGE_KEY]) globalObj[GLOBAL_STORAGE_KEY] = new AsyncLocalStorage();
 var startStorage = globalObj[GLOBAL_STORAGE_KEY];
@@ -199,7 +198,7 @@ async function runWithStartContext(context, fn) {
 }
 function getStartContext(opts) {
   const context = startStorage.getStore();
-  if (!context && (opts == null ? void 0 : opts.throwIfNotFound) !== false) throw new Error(`No Start context found in AsyncLocalStorage. Make sure you are using the function within the server runtime.`);
+  if (!context && opts?.throwIfNotFound !== false) throw new Error(`No Start context found in AsyncLocalStorage. Make sure you are using the function within the server runtime.`);
   return context;
 }
 var getStartOptions = () => getStartContext().startOptions;
@@ -245,10 +244,10 @@ var createServerFn = (options, __opts) => {
         const result = await executeMiddleware$1(resolvedMiddleware, "client", {
           ...extractedFn,
           ...newOptions,
-          data: opts == null ? void 0 : opts.data,
-          headers: opts == null ? void 0 : opts.headers,
-          signal: opts == null ? void 0 : opts.signal,
-          fetch: opts == null ? void 0 : opts.fetch,
+          data: opts?.data,
+          headers: opts?.headers,
+          signal: opts?.signal,
+          fetch: opts?.fetch,
           context: createNullProtoObject()
         });
         const redirect = parseRedirect(result.error);
@@ -285,11 +284,10 @@ var createServerFn = (options, __opts) => {
   return Object.assign(fun, res);
 };
 async function executeMiddleware$1(middlewares, env, opts) {
-  var _a;
-  let flattenedMiddlewares = flattenMiddlewares([...((_a = getStartOptions()) == null ? void 0 : _a.functionMiddleware) || [], ...middlewares]);
+  let flattenedMiddlewares = flattenMiddlewares([...getStartOptions()?.functionMiddleware || [], ...middlewares]);
   if (env === "server") {
     const startContext = getStartContextServerOnly({ throwIfNotFound: false });
-    if (startContext == null ? void 0 : startContext.executedRequestMiddlewares) flattenedMiddlewares = flattenedMiddlewares.filter((m) => !startContext.executedRequestMiddlewares.has(m));
+    if (startContext?.executedRequestMiddlewares) flattenedMiddlewares = flattenedMiddlewares.filter((m) => !startContext.executedRequestMiddlewares.has(m));
   }
   const callNextMiddleware = async (ctx) => {
     const nextMiddleware = flattenedMiddlewares.shift();
@@ -382,17 +380,15 @@ function serverFnBaseToMiddleware(options) {
     options: {
       inputValidator: options.validator ?? options.inputValidator,
       client: async ({ next, sendContext, fetch: fetch2, ...ctx }) => {
-        var _a;
         const payload = {
           ...ctx,
           context: sendContext,
           fetch: fetch2
         };
-        return next(await ((_a = options.extractedFn) == null ? void 0 : _a.call(options, payload)));
+        return next(await options.extractedFn?.(payload));
       },
       server: async ({ next, ...ctx }) => {
-        var _a;
-        const result = await ((_a = options.serverFn) == null ? void 0 : _a.call(options, ctx));
+        const result = await options.serverFn?.(ctx);
         return next({
           ...ctx,
           result
@@ -478,15 +474,13 @@ function isRefererSameOrigin(referer, requestOrigin) {
   return code === 47 || code === 63 || code === 35;
 }
 async function getFailureResponse(opts, ctx) {
-  var _a;
   if (typeof opts.failureResponse === "function") return opts.failureResponse(ctx);
-  return ((_a = opts.failureResponse) == null ? void 0 : _a.clone()) ?? new Response("Forbidden", {
+  return opts.failureResponse?.clone() ?? new Response("Forbidden", {
     status: 403
   });
 }
 function getDefaultSerovalPlugins() {
-  var _a, _b;
-  return [...((_b = (_a = getStartOptions()) == null ? void 0 : _a.serializationAdapters) == null ? void 0 : _b.map(makeSerovalPlugin)) ?? [], ...defaultSerovalPlugins];
+  return [...getStartOptions()?.serializationAdapters?.map(makeSerovalPlugin) ?? [], ...defaultSerovalPlugins];
 }
 var textEncoder = new TextEncoder();
 var EMPTY_PAYLOAD = new Uint8Array(0);
@@ -710,14 +704,14 @@ var handleServerAction = async ({ request, context, serverFnId }) => {
                   controller.close();
                 } catch {
                 }
-                lateStreamWriter == null ? void 0 : lateStreamWriter.close().catch(() => {
+                lateStreamWriter?.close().catch(() => {
                 }).finally(() => {
                   lateStreamWriter = void 0;
                 });
               };
               callbacks.onError = (error) => {
                 controller.error(error);
-                lateStreamWriter == null ? void 0 : lateStreamWriter.abort(error).catch(() => {
+                lateStreamWriter?.abort(error).catch(() => {
                 }).finally(() => {
                   lateStreamWriter = void 0;
                 });
@@ -726,7 +720,7 @@ var handleServerAction = async ({ request, context, serverFnId }) => {
               if (done) callbacks.onDone();
             },
             cancel() {
-              lateStreamWriter == null ? void 0 : lateStreamWriter.abort().catch(() => {
+              lateStreamWriter?.abort().catch(() => {
               });
               lateStreamWriter = void 0;
             }
@@ -776,7 +770,7 @@ var handleServerAction = async ({ request, context, serverFnId }) => {
           return await action(payload2);
         }
         let jsonPayload;
-        if (contentType == null ? void 0 : contentType.includes("application/json")) jsonPayload = await request.json();
+        if (contentType?.includes("application/json")) jsonPayload = await request.json();
         const payload = jsonPayload ? parsePayload(jsonPayload) : {};
         payload.context = safeObjectMerge(payload.context, context);
         payload.method = methodUpper;
@@ -850,7 +844,7 @@ function serializeEarlyHint(hint) {
   return parts.join("; ");
 }
 function getStringAttr(attrs, name, fallbackName) {
-  const value = (attrs == null ? void 0 : attrs[name]) ?? (fallbackName ? attrs == null ? void 0 : attrs[fallbackName] : void 0);
+  const value = attrs?.[name] ?? (fallbackName ? attrs?.[fallbackName] : void 0);
   return typeof value === "string" ? value : void 0;
 }
 function getPreloadAs(attrs) {
@@ -903,7 +897,6 @@ function linkAttrsToEarlyHint(attrs) {
   return hint;
 }
 function collectStaticHintsFromManifest(manifest2, matchedRoutes) {
-  var _a;
   const hints = [];
   for (const route of matchedRoutes) {
     const routeManifest = manifest2.routes[route.id];
@@ -920,7 +913,7 @@ function collectStaticHintsFromManifest(manifest2, matchedRoutes) {
     }
     for (const link of routeManifest.css ?? []) {
       const stylesheetHref = getStylesheetHref(link);
-      if (((_a = manifest2.inlineCss) == null ? void 0 : _a.styles[stylesheetHref]) !== void 0) continue;
+      if (manifest2.inlineCss?.styles[stylesheetHref] !== void 0) continue;
       const resolvedLink = resolveManifestCssLink(link);
       const hint = {
         href: stylesheetHref,
@@ -1037,14 +1030,14 @@ function collectEarlyHintsPhase(opts) {
   });
 }
 function createEarlyHintsCollector(opts) {
-  if (!(opts == null ? void 0 : opts.onEarlyHints) && !(opts == null ? void 0 : opts.responseLinkHeader)) return;
+  if (!opts?.onEarlyHints && !opts?.responseLinkHeader) return;
   const sentLinks = /* @__PURE__ */ new Set();
   const sentHints = opts.onEarlyHints ? new Array() : void 0;
   const responseLinkHeaderEntries = opts.responseLinkHeader ? new Array() : void 0;
   const responseLinkHeaderFilter = getResponseLinkHeaderFilter(opts.responseLinkHeader);
   return {
     collectStatic: ({ manifest: manifest2, matchedRoutes }) => {
-      if (!(matchedRoutes == null ? void 0 : matchedRoutes.length)) return;
+      if (!matchedRoutes?.length) return;
       collectEarlyHintsPhase({
         phase: "static",
         hints: collectStaticHintsFromManifest(manifest2, matchedRoutes),
@@ -1065,7 +1058,7 @@ function createEarlyHintsCollector(opts) {
       });
     },
     appendResponseHeaders: (headers) => {
-      if (!(responseLinkHeaderEntries == null ? void 0 : responseLinkHeaderEntries.length)) return;
+      if (!responseLinkHeaderEntries?.length) return;
       appendResponseLinkHeaders({
         responseHeaders: headers,
         entries: responseLinkHeaderEntries,
@@ -1098,8 +1091,7 @@ async function transformInlineCssTemplate(options) {
 async function transformInlineCssStyles(inlineCss, transformFn) {
   const transformedStyles = {};
   const transformedEntries = await Promise.all(Object.entries(inlineCss.styles).map(async ([stylesheetHref, css]) => {
-    var _a;
-    const template = (_a = inlineCss.templates) == null ? void 0 : _a[stylesheetHref];
+    const template = inlineCss.templates?.[stylesheetHref];
     return [stylesheetHref, template ? await transformInlineCssTemplate({
       stylesheetHref,
       template,
@@ -1172,9 +1164,8 @@ function assignManifestLink(link, next) {
   return nextLink;
 }
 async function transformManifestAssets(source, transformFn, _opts) {
-  var _a, _b, _c, _d;
   const manifest2 = structuredClone(source);
-  const inlineCssEnabled = (_opts == null ? void 0 : _opts.inlineCss) !== false;
+  const inlineCssEnabled = _opts?.inlineCss !== false;
   const scriptTransforms = /* @__PURE__ */ new Map();
   const transformScript = (url) => {
     const cached = scriptTransforms.get(url);
@@ -1189,14 +1180,14 @@ async function transformManifestAssets(source, transformFn, _opts) {
   if (!inlineCssEnabled) delete manifest2.inlineCss;
   else if (manifest2.inlineCss) manifest2.inlineCss = await transformInlineCssStyles(manifest2.inlineCss, transformFn);
   for (const route of Object.values(manifest2.routes)) {
-    if ((_a = route.preloads) == null ? void 0 : _a.length) route.preloads = await Promise.all(route.preloads.map(async (link) => {
+    if (route.preloads?.length) route.preloads = await Promise.all(route.preloads.map(async (link) => {
       const result = await transformScript(resolveManifestAssetLink(link).href);
       return assignManifestLink(link, {
         href: result.href,
         crossOrigin: result.crossOrigin
       });
     }));
-    if (((_b = route.css) == null ? void 0 : _b.length) && !manifest2.inlineCss) route.css = await Promise.all(route.css.map(async (link) => {
+    if (route.css?.length && !manifest2.inlineCss) route.css = await Promise.all(route.css.map(async (link) => {
       const result = normalizeTransformAssetResult(await transformFn({
         url: resolveManifestCssLink(link).href,
         kind: "stylesheet"
@@ -1206,8 +1197,8 @@ async function transformManifestAssets(source, transformFn, _opts) {
         crossOrigin: result.crossOrigin
       });
     }));
-    if ((_c = route.scripts) == null ? void 0 : _c.length) for (const script of route.scripts) {
-      const src = (_d = script.attrs) == null ? void 0 : _d.src;
+    if (route.scripts?.length) for (const script of route.scripts) {
+      const src = script.attrs?.src;
       if (typeof src !== "string") continue;
       const result = await transformScript(src);
       script.attrs = {
@@ -1223,7 +1214,7 @@ async function transformManifestAssets(source, transformFn, _opts) {
 function buildManifest(source, opts) {
   return {
     ...source.scriptFormat ? { scriptFormat: source.scriptFormat } : {},
-    ...(opts == null ? void 0 : opts.inlineCss) !== false && source.inlineCss ? { inlineCss: structuredClone(source.inlineCss) } : {},
+    ...opts?.inlineCss !== false && source.inlineCss ? { inlineCss: structuredClone(source.inlineCss) } : {},
     routes: { ...source.routes }
   };
 }
@@ -1384,8 +1375,8 @@ var getBaseManifest = getProdBaseManifest;
 var createEarlyHintsForRequest = createEarlyHintsCollector;
 async function loadEntries() {
   const [routerEntry, startEntry, pluginAdapters] = await Promise.all([
-    import("./assets/router-BIvSxtTV.js"),
-    import("./assets/start-BF7u6qHk.js"),
+    import("./assets/router-BnL55oKo.js").then((n) => n.r),
+    import("./assets/start-B2VK6Lld.js"),
     import("./assets/empty-plugin-adapters-BFgPZ6_d.js")
   ]);
   return {
@@ -1529,7 +1520,6 @@ function createStartHandler(cbOrOptions) {
   const resolveManifestForRequest = finalManifestResolver.resolveCached;
   finalManifestResolver.warmup({ getBaseManifest: () => getBaseManifest() });
   const startRequestResolver = async (request, requestOpts) => {
-    var _a;
     let router = null;
     let responseOwnsCleanup = false;
     try {
@@ -1539,7 +1529,7 @@ function createStartHandler(cbOrOptions) {
       if (handledProtocolRelativeURL) return Response.redirect(url, 308);
       const entries = await getEntries();
       const hasStartInstance = !!entries.startEntry.startInstance;
-      const startOptions = await ((_a = entries.startEntry.startInstance) == null ? void 0 : _a.getOptions()) || {};
+      const startOptions = await entries.startEntry.startInstance?.getOptions() || {};
       const { hasPluginAdapters, pluginSerializationAdapters } = entries.pluginAdapters;
       const serializationAdapters = [
         ...startOptions.serializationAdapters || [],
@@ -1584,7 +1574,7 @@ function createStartHandler(cbOrOptions) {
             handlerType: "serverFn"
           }, () => handleServerAction({
             request,
-            context: requestOpts == null ? void 0 : requestOpts.context,
+            context: requestOpts?.context,
             serverFnId
           }));
         };
@@ -1592,7 +1582,7 @@ function createStartHandler(cbOrOptions) {
           request,
           pathname: url.pathname,
           handlerType: "serverFn",
-          context: createNullProtoObject(requestOpts == null ? void 0 : requestOpts.context)
+          context: createNullProtoObject(requestOpts?.context)
         });
         const result = await handleRedirectResponse(middlewareResponse2, request, getRouter);
         responseOwnsCleanup = result.serverSsrCleanup === "stream";
@@ -1603,14 +1593,14 @@ function createStartHandler(cbOrOptions) {
         if (!["*/*", "text/html"].some((mimeType) => acceptParts.some((part) => part.trim().startsWith(mimeType)))) return normalizeSsrResponse(Response.json({ error: "Only HTML requests are supported here" }, { status: 500 }));
         const manifest2 = await resolveManifestForRequest({
           request,
-          requestInlineCss: requestOpts == null ? void 0 : requestOpts.inlineCss,
+          requestInlineCss: requestOpts?.inlineCss,
           getBaseManifest: () => getBaseManifest(matchedRoutes)
         });
         const earlyHints = createEarlyHintsForRequest({
-          onEarlyHints: requestOpts == null ? void 0 : requestOpts.onEarlyHints,
-          responseLinkHeader: requestOpts == null ? void 0 : requestOpts.responseLinkHeader
+          onEarlyHints: requestOpts?.onEarlyHints,
+          responseLinkHeader: requestOpts?.responseLinkHeader
         });
-        earlyHints == null ? void 0 : earlyHints.collectStatic({
+        earlyHints?.collectStatic({
           manifest: manifest2,
           matchedRoutes
         });
@@ -1618,19 +1608,16 @@ function createStartHandler(cbOrOptions) {
         attachRouterServerSsrUtils({
           router: routerInstance,
           manifest: manifest2,
-          getRequestAssets: () => {
-            var _a2;
-            return (_a2 = getStartContext({ throwIfNotFound: false })) == null ? void 0 : _a2.requestAssets;
-          }
+          getRequestAssets: () => getStartContext({ throwIfNotFound: false })?.requestAssets
         });
         routerInstance.options.additionalContext = { serverContext };
         await routerInstance.load();
         if (routerInstance.state.redirect) return normalizeSsrResponse(routerInstance.state.redirect);
-        earlyHints == null ? void 0 : earlyHints.collectDynamic(routerInstance.stores.matches.get());
+        earlyHints?.collectDynamic(routerInstance.stores.matches.get());
         const ctx = getStartContext({ throwIfNotFound: false });
-        await routerInstance.serverSsr.dehydrate({ requestAssets: ctx == null ? void 0 : ctx.requestAssets });
+        await routerInstance.serverSsr.dehydrate({ requestAssets: ctx?.requestAssets });
         const responseHeaders = getStartResponseHeaders({ router: routerInstance });
-        earlyHints == null ? void 0 : earlyHints.appendResponseHeaders(responseHeaders);
+        earlyHints?.appendResponseHeaders(responseHeaders);
         return normalizeSsrResponse(await cb({
           request,
           router: routerInstance,
@@ -1665,13 +1652,13 @@ function createStartHandler(cbOrOptions) {
         request,
         pathname: url.pathname,
         handlerType: "router",
-        context: createNullProtoObject(requestOpts == null ? void 0 : requestOpts.context)
+        context: createNullProtoObject(requestOpts?.context)
       });
       const response = await handleRedirectResponse(middlewareResponse, request, getRouter);
       responseOwnsCleanup = response.serverSsrCleanup === "stream";
       return response.response;
     } finally {
-      if ((router == null ? void 0 : router.serverSsr) && !responseOwnsCleanup) router.serverSsr.cleanup();
+      if (router?.serverSsr && !responseOwnsCleanup) router.serverSsr.cleanup();
       router = null;
     }
   };
@@ -1702,22 +1689,21 @@ async function handleRedirectResponse(response, request, getRouter) {
   return replaceSsrResponse(ssrResponse, redirect, "redirect response replaced");
 }
 async function handleServerRoutes({ getRouter, request, url, executeRouter, context, executedRequestMiddlewares }) {
-  var _a, _b;
   const router = await getRouter();
   const pathname = executeRewriteInput(router.rewrite, url).pathname;
   const { matchedRoutes, foundRoute, routeParams } = router.getMatchedRoutes(pathname);
   const isExactMatch = foundRoute && routeParams["**"] === void 0;
   const routeMiddlewares = [];
   for (const route of matchedRoutes) {
-    const serverMiddleware = (_a = route.options.server) == null ? void 0 : _a.middleware;
+    const serverMiddleware = route.options.server?.middleware;
     if (serverMiddleware) {
       const flattened = flattenMiddlewares(serverMiddleware);
       for (const m of flattened) if (!executedRequestMiddlewares.has(m)) routeMiddlewares.push(m.options.server);
     }
   }
-  const server2 = foundRoute == null ? void 0 : foundRoute.options.server;
+  const server2 = foundRoute?.options.server;
   let isHeadFallback = false;
-  if ((server2 == null ? void 0 : server2.handlers) && isExactMatch) {
+  if (server2?.handlers && isExactMatch) {
     const handlers = typeof server2.handlers === "function" ? server2.handlers({ createHandlers: (d) => d }) : server2.handlers;
     const requestMethod = request.method.toUpperCase();
     const handler = requestMethod === "HEAD" ? handlers["HEAD"] ?? handlers["GET"] ?? handlers["ANY"] : handlers[requestMethod] ?? handlers["ANY"];
@@ -1726,7 +1712,7 @@ async function handleServerRoutes({ getRouter, request, url, executeRouter, cont
       const mayDefer = !!foundRoute.options.component;
       if (typeof handler === "function") routeMiddlewares.push(handlerToMiddleware(handler, mayDefer));
       else {
-        if ((_b = handler.middleware) == null ? void 0 : _b.length) {
+        if (handler.middleware?.length) {
           const handlerMiddlewares = flattenMiddlewares(handler.middleware);
           for (const m of handlerMiddlewares) routeMiddlewares.push(m.options.server);
         }
