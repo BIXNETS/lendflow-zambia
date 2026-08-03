@@ -71,6 +71,11 @@ function ClientDashboard() {
                     <div className="mt-1 text-xs text-[color:var(--color-muted)]">
                       {a.id} · service fee {money(a.serviceFee)} ({a.serviceFeePct}%) via {a.provider}
                     </div>
+                    <div className="mt-1 text-xs text-[color:var(--color-muted)]">
+                      Principal {money(a.amount)} · interest {money(computeLoan(a.amount, a.serviceFeePct, a.term).interest)} · total repayment{" "}
+                      <span className="font-bold text-[color:var(--color-fg)]">{money(computeLoan(a.amount, a.serviceFeePct, a.term).totalRepayment)}</span>
+                    </div>
+
                   </div>
                   <StatusPill status={a.status} />
                 </div>
