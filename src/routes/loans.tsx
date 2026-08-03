@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import { SiteNav, SiteFooter, ApplyButton } from "@/components/SiteNav";
 import { Wizard } from "@/components/Wizard";
+import { getProduct, fitToProduct } from "@/lib/loan-products";
+import { computeLoan } from "@/lib/demo-auth";
 
 export const Route = createFileRoute("/loans")({
   head: () => ({
@@ -29,47 +31,47 @@ const PILLARS = [
 
 const OPTIONS = [
   {
-    icon: <HeartHandshake />, title: "Personal Loans",
+    icon: <HeartHandshake />, title: "Personal Loans", productId: "personal",
     body: "For medical bills, home repairs and the unexpected moments.",
     points: ["K500 – K250,000", "Fast decisions", "Mobile wallet payout"],
   },
   {
-    icon: <Briefcase />, title: "Business Loans",
+    icon: <Briefcase />, title: "Business Loans", productId: "business",
     body: "Grow your stock, expand your stall or cover a cash-flow gap.",
     points: ["K500 – K1,000,000", "3 – 24 month terms", "Same-day disbursement"],
   },
   {
-    icon: <Sprout />, title: "Agri Loans",
+    icon: <Sprout />, title: "Agri Loans", productId: "agri",
     body: "Fund seeds, fertiliser, tools and equipment to grow your farm.",
     points: ["Harvest-aligned repayments", "Input supplier payouts", "Seasonal terms"],
   },
   {
-    icon: <Landmark />, title: "Civil Servant Loans",
+    icon: <Landmark />, title: "Civil Servant Loans", productId: "civil-servant",
     body: "Payroll-backed lending for government and public sector workers.",
     points: ["Payroll deduction", "Higher limits", "Low documentation"],
   },
   {
-    icon: <Users />, title: "Scheme Loans",
+    icon: <Users />, title: "Scheme Loans", productId: "scheme",
     body: "Employer-approved schemes for staff at partner organisations.",
     points: ["Employer partnership", "Group onboarding", "Preferential rates"],
   },
   {
-    icon: <ShieldCheck />, title: "Collateral Backed Loans",
+    icon: <ShieldCheck />, title: "Collateral Backed Loans", productId: "collateral",
     body: "Unlock bigger amounts against a vehicle, property or equipment.",
     points: ["Largest limits", "Longer terms", "Asset valuation included"],
   },
   {
-    icon: <Wallet />, title: "Salary Advance",
+    icon: <Wallet />, title: "Salary Advance", productId: "salary-advance",
     body: "Bridge the gap to payday with a short-term advance.",
     points: ["1 – 3 month terms", "Same-day payout", "Repaid on payday"],
   },
   {
-    icon: <GraduationCap />, title: "Education Loans",
+    icon: <GraduationCap />, title: "Education Loans", productId: "education",
     body: "Cover school fees, uniforms and exam costs without the stress.",
     points: ["Term-aligned repayments", "Pay school directly", "No hidden charges"],
   },
   {
-    icon: <Receipt />, title: "Bill Credit", soon: true,
+    icon: <Receipt />, title: "Bill Credit", productId: "bill-credit", soon: true,
     body: "Airtime, data, pay TV, electricity and water on credit.",
     points: ["Buy now, pay later", "All major billers", "Coming soon"],
   },
@@ -77,10 +79,10 @@ const OPTIONS = [
 
 
 function Loans() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<string | null>(null);
   return (
     <div className="min-h-screen">
-      <SiteNav onApply={() => setOpen(true)} />
+      <SiteNav onApply={() => setOpen("personal")} />
 
       <section className="mx-auto max-w-7xl px-6 py-16 text-center">
         <h1 className="text-4xl font-black tracking-tight sm:text-5xl">Our Services</h1>
@@ -94,7 +96,7 @@ function Loans() {
               </div>
               <h2 className="mt-4 text-xl font-black">{p.title}</h2>
               <p className="mt-2 text-sm text-[color:var(--color-muted)]">{p.body}</p>
-              <button onClick={() => setOpen(true)} className="mt-5 self-start text-sm font-bold text-[color:var(--color-leaf-dark)] hover:underline">
+              <button onClick={() => setOpen("personal")} className="mt-5 self-start text-sm font-bold text-[color:var(--color-leaf-dark)] hover:underline">
                 {p.cta} →
               </button>
             </article>
@@ -132,7 +134,7 @@ function Loans() {
                     Coming soon
                   </button>
                 ) : (
-                  <ApplyButton onApply={() => setOpen(true)} className="w-full" />
+                  <ApplyButton onApply={() => setOpen(o.productId)} className="w-full" />
                 )}
               </div>
             </article>
@@ -153,7 +155,15 @@ function Loans() {
       </section>
 
       <SiteFooter />
-      {open && <Wizard onClose={() => setOpen(false)} loan={{ amount: 15000, term: 12, pct: 12, serviceFee: 1800, monthly: 1250 }} />}
+      {open && (() => {
+        const p = getProduct(open);
+        const fit = fitToProduct(p, 15000, 12);
+        const c = computeLoan(fit.amount, fit.pct, fit.term, p.interestRate);
+        return (
+          <Wizard onClose={() => setOpen(null)}
+            loan={{ amount: fit.amount, term: fit.term, pct: fit.pct, serviceFee: c.serviceFee, monthly: c.monthly, productId: p.id }} />
+        );
+      })()}
     </div>
   );
 }

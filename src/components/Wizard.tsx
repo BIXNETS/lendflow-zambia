@@ -42,7 +42,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
   const calc = computeLoan(amount, product.serviceFeePct, term, product.interestRate);
   const L = {
     amount, term, pct: product.serviceFeePct, serviceFee: calc.serviceFee,
-    monthly: calc.monthly, interest: calc.interest, total: calc.totalRepayment,
+    monthly: calc.monthly, interest: calc.interest, total: calc.totalRepayment, rate: product.interestRate,
     rateLabel: (product.interestRate * 100).toFixed(1).replace(/\.0$/, "") + "%",
   };
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -351,8 +351,8 @@ export function inputCls(error?: string) {
   );
 }
 
-function Breakdown({ loan }: { loan: { amount: number; pct: number; term: number; rateLabel?: string } }) {
-  const b = computeLoan(loan.amount, loan.pct, loan.term);
+function Breakdown({ loan }: { loan: { amount: number; pct: number; term: number; rate?: number; rateLabel?: string } }) {
+  const b = computeLoan(loan.amount, loan.pct, loan.term, loan.rate);
   return (
     <dl className="space-y-2 rounded-2xl border border-[color:var(--color-line)] bg-[color:var(--color-sky)]/60 p-4 text-sm">
       <div className="flex items-center justify-between gap-3">
