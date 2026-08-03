@@ -137,7 +137,7 @@ function ClientDashboard() {
                 <button
                   type="button"
                   data-testid="apply-loan"
-                  onClick={() => setWizardOpen(true)}
+                  onClick={() => openWizard()}
                   className="btn-primary rounded-full px-4 py-2 text-xs font-bold"
                 >
                   Apply for a loan
@@ -269,7 +269,7 @@ function ClientDashboard() {
         return (
           <Wizard
             loan={{ amount, term, pct: p.serviceFeePct, serviceFee, monthly, productId: p.id }}
-            onClose={() => { setWizardOpen(false); void refresh(); }}
+            onClose={() => { closeWizard(); }}
           />
         );
       })()}
