@@ -31,11 +31,54 @@
 
 html, body, #root { min-height: 100%; }
 
-/* Display type — Lupiya-style geometric sans for headings and CTAs */
-h1, h2, h3, h4, h5, h6, .font-display, button, .btn-primary, .btn-navy {
+/* Display type — Lupiya-style geometric sans for headings, CTAs, tables and numbers */
+h1, h2, h3, h4, h5, h6, .font-display,
+button, .btn-primary, .btn-navy,
+th, dt, legend, label, summary,
+.tabular-nums {
   font-family: var(--font-display);
   letter-spacing: -0.015em;
 }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; }
+th {
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-muted);
+}
+td { font-size: 0.875rem; }
+
+/* Form + error states */
+input, select, textarea { font-family: var(--font-sans); }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--color-leaf);
+  outline-offset: 2px;
+}
+.field-error, [data-error="true"] {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #dc2626;
+}
+input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] {
+  border-color: #f87171;
+}
+
+/* Mobile typography — fluid headings so nothing overflows on small screens */
+h1 { font-size: clamp(2.15rem, 8.5vw, 3.75rem); line-height: 1.05; }
+h2 { font-size: clamp(1.6rem, 5.5vw, 2.25rem); line-height: 1.15; }
+h3 { font-size: clamp(1.05rem, 4vw, 1.25rem); }
+
+@media (max-width: 640px) {
+  body { -webkit-text-size-adjust: 100%; }
+  .tabular-nums { letter-spacing: -0.02em; }
+  input, select, textarea { font-size: 16px; } /* prevents iOS zoom-on-focus */
+}
+
 
 body {
   background:
