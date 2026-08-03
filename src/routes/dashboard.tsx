@@ -38,6 +38,7 @@ function ClientDashboard() {
     kycStatus: string; applications: Row[]; loans: Row[]; transactions: Row[]; notifications: Row[];
   }>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [wizardOpen, setWizardOpen] = useState(false);
   const [error, setError] = useState("");
 
   const refresh = useCallback(async () => {
