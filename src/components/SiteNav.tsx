@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Brand } from "@/components/Brand";
 import { cn } from "@/lib/utils";
+import { useAccount } from "@/lib/session";
 
 const LINKS = [
   { to: "/", label: "Home" },
@@ -14,6 +15,9 @@ const LINKS = [
 
 export function SiteNav({ onApply }: { onApply?: () => void }) {
   const [open, setOpen] = useState(false);
+  const { account } = useAccount();
+  const home = account?.role === "manager" ? "/manager" : "/dashboard";
+
   return (
     <header className="sticky top-0 z-40 border-b border-[color:var(--color-line)] bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3.5">
@@ -35,11 +39,12 @@ export function SiteNav({ onApply }: { onApply?: () => void }) {
 
         <div className="flex items-center gap-2">
           <Link
-            to="/auth"
+            to={account ? home : "/auth"}
             className="hidden rounded-lg border border-[color:var(--color-line)] px-4 py-2 text-sm font-bold text-[color:var(--color-navy)] transition hover:bg-[color:var(--color-sky)] sm:block"
           >
-            Login
+            {account ? "My dashboard" : "Login"}
           </Link>
+
           <ApplyButton onApply={onApply} />
           <button
             aria-label="Toggle menu"
@@ -59,8 +64,8 @@ export function SiteNav({ onApply }: { onApply?: () => void }) {
               {l.label}
             </Link>
           ))}
-          <Link to="/auth" onClick={() => setOpen(false)} className="block py-2.5 text-sm font-semibold text-[color:var(--color-navy)]">
-            Login
+          <Link to={account ? home : "/auth"} onClick={() => setOpen(false)} className="block py-2.5 text-sm font-semibold text-[color:var(--color-navy)]">
+            {account ? "My dashboard" : "Login"}
           </Link>
         </nav>
       )}

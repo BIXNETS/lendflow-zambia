@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Brand } from "@/components/Brand";
-import { signInAccount, signUpAccount } from "@/lib/session";
+import { signInAccount, signUpAccount, useAccount } from "@/lib/session";
 import { inputCls } from "@/components/Wizard";
 import { cn } from "@/lib/utils";
 import { Clock, Lock, ShieldCheck } from "lucide-react";
@@ -20,38 +20,74 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+/** Turn raw auth errors into something a borrower can act on. */
+function friendly(message: string) {
+  const m = message.toLowerCase();
+  if (m.includes("invalid login")) return "Email or password is incorrect.";
+  if (m.includes("email not confirmed")) return "Please confirm your email address, then sign in.";
+  if (m.includes("already registered") || m.includes("already been registered"))
+    return "That email already has an account — switch to Sign in.";
+  if (m.includes("weak") || m.includes("easy to guess"))
+    return "That password is too easy to guess. Try a longer one with numbers and symbols.";
+  if (m.includes("rate limit") || m.includes("too many"))
+    return "Too many attempts. Please wait a minute and try again.";
+  return message;
+}
+
 function AuthPage() {
   const navigate = useNavigate();
+  const { account } = useAccount();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
 
   const go = (role: string) => navigate({ to: role === "manager" ? "/manager" : "/dashboard" });
 
+  // Already signed in? Don't leave the user staring at a form that "does nothing".
+  useEffect(() => {
+    if (account) go(account.role);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account]);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setNotice("");
+
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !/^\S+@\S+\.\S+$/.test(cleanEmail)) return setError("Please enter a valid email address.");
+    if (!password) return setError("Please enter your password.");
+    if (mode === "signup") {
+      if (!name.trim()) return setError("Please enter your full name.");
+      if (password.length < 8) return setError("Password must be at least 8 characters.");
+    }
+
     setBusy(true);
     try {
       if (mode === "signin") {
-        const res = await signInAccount(email, password);
-        if (!res.ok) return setError(res.error);
+        const res = await signInAccount(cleanEmail, password);
+        if (!res.ok) return setError(friendly(res.error));
         go(res.account.role);
       } else {
-        if (!name.trim()) return setError("Please enter your full name.");
-        if (password.length < 6) return setError("Password must be at least 6 characters.");
-        const res = await signUpAccount({ name, email, password, phone });
-        if (!res.ok) return setError(res.error);
+        const res = await signUpAccount({ name, email: cleanEmail, password, phone });
+        if (!res.ok) {
+          if (/check your email/i.test(res.error)) return setNotice(res.error);
+          return setError(friendly(res.error));
+        }
         go(res.account.role);
       }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setBusy(false);
     }
   };
+
 
   const HIGHLIGHTS = [
     { icon: ShieldCheck, title: "Bank-grade security", body: "Your details are encrypted in transit and at rest." },
@@ -103,6 +139,7 @@ function AuthPage() {
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} className={inputCls()} placeholder="••••••••" />
             </Labelled>
             {error && <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">{error}</p>}
+            {notice && <p role="status" className="rounded-xl bg-[color:var(--color-mint)] px-3 py-2 text-sm font-semibold text-[color:var(--color-leaf-dark)]">{notice}</p>}
             <button type="submit" disabled={busy} className="btn-primary w-full rounded-full px-6 py-3 text-sm font-bold disabled:opacity-60">
               {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
             </button>
