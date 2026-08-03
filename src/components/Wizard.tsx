@@ -95,7 +95,9 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
         e.amount = `${product.title}: ${money(product.minAmount)} – ${money(product.maxAmount)}`;
       if (term < product.minTerm || term > product.maxTerm)
         e.term = `${product.title}: ${product.minTerm} – ${product.maxTerm} months`;
-      if (!form.eligibility) e.eligibility = "Please confirm you meet the requirements";
+      if (!verified) e.eligibility = "Verify your identity before applying";
+      else if (!form.eligibility) e.eligibility = "Please confirm you meet the requirements";
+
     }
     if (s === 3) {
       if (!form.provider) e.provider = "Choose a mobile money provider";
