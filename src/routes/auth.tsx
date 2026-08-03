@@ -111,23 +111,16 @@ function AuthPage() {
 
         <div className="space-y-6">
           <div className="card p-8">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[color:var(--color-leaf-dark)]">
-              <KeyRound className="h-4 w-4" /> Admin sign-in details
+            <div className="text-xs font-bold uppercase tracking-widest text-[color:var(--color-leaf-dark)]">
+              Why LendFlow
             </div>
             <div className="mt-5 space-y-4">
-              {CREDENTIALS.map((a, i) => (
-                <div key={a.email} className="rounded-2xl border border-[color:var(--color-line)] bg-[color:var(--color-mint)] p-5">
+              {HIGHLIGHTS.map(h => (
+                <div key={h.title} className="rounded-2xl border border-[color:var(--color-line)] bg-[color:var(--color-mint)] p-5">
                   <div className="flex items-center gap-2 text-sm font-black text-[color:var(--color-navy)]">
-                    {a.role === "manager" ? <ShieldCheck className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-                    {a.role === "manager" ? "Manager / back office" : "Client / borrower"}
+                    <h.icon className="h-4 w-4" /> {h.title}
                   </div>
-                  <dl className="mt-3 space-y-1 text-sm">
-                    <div className="flex justify-between gap-3"><dt className="text-[color:var(--color-muted)]">Email</dt><dd className="font-bold">{a.email}</dd></div>
-                    <div className="flex justify-between gap-3"><dt className="text-[color:var(--color-muted)]">Password</dt><dd className="font-bold">{a.password}</dd></div>
-                  </dl>
-                  <button onClick={() => useDemo(i)} className="btn-navy mt-4 w-full rounded-full px-4 py-2 text-xs font-bold">
-                    Use these credentials
-                  </button>
+                  <p className="mt-2 text-sm text-[color:var(--color-muted)]">{h.body}</p>
                 </div>
               ))}
             </div>
