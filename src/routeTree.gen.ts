@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as LoansRouteImport } from './routes/loans'
 import { Route as ManagerRouteImport } from './routes/manager'
 import { Route as ApiPublicMomoWebhookRouteImport } from './routes/api/public/momo/webhook'
 
@@ -36,6 +37,11 @@ const HowItWorksRoute = HowItWorksRouteImport.update({
   path: '/how-it-works',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoansRoute = LoansRouteImport.update({
+  id: '/loans',
+  path: '/loans',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ManagerRoute = ManagerRouteImport.update({
   id: '/manager',
   path: '/manager',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/loans': typeof LoansRoute
   '/manager': typeof ManagerRoute
   '/api/public/momo/webhook': typeof ApiPublicMomoWebhookRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/loans': typeof LoansRoute
   '/manager': typeof ManagerRoute
   '/api/public/momo/webhook': typeof ApiPublicMomoWebhookRoute
 }
@@ -69,6 +77,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/loans': typeof LoansRoute
   '/manager': typeof ManagerRoute
   '/api/public/momo/webhook': typeof ApiPublicMomoWebhookRoute
 }
@@ -79,6 +88,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/how-it-works'
+    | '/loans'
     | '/manager'
     | '/api/public/momo/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -87,6 +97,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/how-it-works'
+    | '/loans'
     | '/manager'
     | '/api/public/momo/webhook'
   id:
@@ -95,6 +106,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/how-it-works'
+    | '/loans'
     | '/manager'
     | '/api/public/momo/webhook'
   fileRoutesById: FileRoutesById
@@ -104,6 +116,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
   HowItWorksRoute: typeof HowItWorksRoute
+  LoansRoute: typeof LoansRoute
   ManagerRoute: typeof ManagerRoute
   ApiPublicMomoWebhookRoute: typeof ApiPublicMomoWebhookRoute
 }
@@ -138,6 +151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HowItWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/loans': {
+      id: '/loans'
+      path: '/loans'
+      fullPath: '/loans'
+      preLoaderRoute: typeof LoansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/manager': {
       id: '/manager'
       path: '/manager'
@@ -160,6 +180,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
   HowItWorksRoute: HowItWorksRoute,
+  LoansRoute: LoansRoute,
   ManagerRoute: ManagerRoute,
   ApiPublicMomoWebhookRoute: ApiPublicMomoWebhookRoute,
 }
