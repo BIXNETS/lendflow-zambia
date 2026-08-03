@@ -53,6 +53,75 @@ export type Database = {
         }
         Relationships: []
       }
+      loan_applications: {
+        Row: {
+          amount: number
+          created_at: string
+          email: string
+          employment: string | null
+          first_name: string
+          id: string
+          id_back_path: string | null
+          id_front_path: string | null
+          last_name: string
+          mobile_number: string | null
+          mobile_provider: string | null
+          monthly_income: number | null
+          monthly_payment: number
+          phone: string
+          purpose: string | null
+          rate: number
+          selfie_path: string | null
+          status: string
+          term_months: number
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          email: string
+          employment?: string | null
+          first_name: string
+          id?: string
+          id_back_path?: string | null
+          id_front_path?: string | null
+          last_name: string
+          mobile_number?: string | null
+          mobile_provider?: string | null
+          monthly_income?: number | null
+          monthly_payment: number
+          phone: string
+          purpose?: string | null
+          rate: number
+          selfie_path?: string | null
+          status?: string
+          term_months: number
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          email?: string
+          employment?: string | null
+          first_name?: string
+          id?: string
+          id_back_path?: string | null
+          id_front_path?: string | null
+          last_name?: string
+          mobile_number?: string | null
+          mobile_provider?: string | null
+          monthly_income?: number | null
+          monthly_payment?: number
+          phone?: string
+          purpose?: string | null
+          rate?: number
+          selfie_path?: string | null
+          status?: string
+          term_months?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       loan_tiers: {
         Row: {
           activation_fee: number
