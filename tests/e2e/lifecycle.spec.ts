@@ -1,7 +1,8 @@
 import { test, expect, type Page, type BrowserContext } from "@playwright/test";
 import { LOAN_PRODUCTS, fitToProduct } from "../../src/lib/loan-products";
 import { computeLoan } from "../../src/lib/demo-auth";
-import { ADMIN_EMAIL, ADMIN_PASSWORD } from "../../src/lib/session";
+const ADMIN_EMAIL = process.env["E2E_ADMIN_EMAIL"] ?? "admin@lendflowafrica.com";
+const ADMIN_PASSWORD = process.env["E2E_ADMIN_PASSWORD"] ?? "";
 
 const money = (n: number) => "K" + Math.round(n).toLocaleString("en-US");
 const PRODUCT = LOAN_PRODUCTS.find(p => p.id === "personal")!;
