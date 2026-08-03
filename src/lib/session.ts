@@ -116,17 +116,36 @@ export function useKycStatus() {
 
   useEffect(() => {
     let alive = true;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
     const load = async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) { if (alive) setStatus("signed_out"); return; }
       const { data } = await supabase.from("profiles").select("kyc_status").eq("id", u.user.id).maybeSingle();
       if (alive) setStatus(data?.kyc_status ?? "pending");
+
+      // Live updates: unlock the wizard the moment an admin approves the documents.
+      if (!channel && alive) {
+        channel = supabase
+          .channel(`kyc-${u.user.id}`)
+          .on("postgres_changes",
+            { event: "*", schema: "public", table: "profiles", filter: `id=eq.${u.user.id}` },
+            (payload) => {
+              const next = (payload.new as { kyc_status?: string } | null)?.kyc_status;
+              if (alive && next) setStatus(next);
+            })
+          .on("postgres_changes",
+            { event: "*", schema: "public", table: "kyc_documents", filter: `user_id=eq.${u.user.id}` },
+            () => { void load(); })
+          .subscribe();
+      }
     };
+
     void load();
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN" || event === "SIGNED_OUT") void load();
     });
-    // keep the gate fresh: an admin can approve documents while this page is open
+    // Safety net if the realtime socket drops.
     const timer = setInterval(() => { void load(); }, 10000);
     const onFocus = () => { void load(); };
     window.addEventListener("focus", onFocus);
@@ -134,6 +153,7 @@ export function useKycStatus() {
     return () => {
       alive = false;
       data.subscription.unsubscribe();
+      if (channel) void supabase.removeChannel(channel);
       clearInterval(timer);
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onFocus);
@@ -142,3 +162,4 @@ export function useKycStatus() {
 
   return status;
 }
+
