@@ -1,10 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Brand } from "@/components/Brand";
-import { ADMIN_EMAIL, ADMIN_PASSWORD, signInAccount, signUpAccount } from "@/lib/session";
+import { signInAccount, signUpAccount } from "@/lib/session";
 import { inputCls } from "@/components/Wizard";
 import { cn } from "@/lib/utils";
-import { KeyRound, ShieldCheck, UserPlus } from "lucide-react";
+import { Clock, Lock, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
