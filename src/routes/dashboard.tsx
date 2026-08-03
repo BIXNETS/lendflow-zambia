@@ -101,7 +101,14 @@ function ClientDashboard() {
             <section data-testid="loans-card" className="card overflow-hidden">
               <div className="flex items-center justify-between border-b border-[color:var(--color-line)] px-6 py-4">
                 <h2 className="text-lg font-bold">My loans</h2>
-                <Link to="/" className="btn-primary rounded-full px-4 py-2 text-xs font-bold">New application</Link>
+                <button
+                  type="button"
+                  data-testid="apply-loan"
+                  onClick={() => setWizardOpen(true)}
+                  className="btn-primary rounded-full px-4 py-2 text-xs font-bold"
+                >
+                  Apply for a loan
+                </button>
               </div>
               {data.loans.length === 0 ? (
                 <p className="px-6 py-10 text-center text-sm text-[color:var(--color-muted)]">
