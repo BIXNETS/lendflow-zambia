@@ -3,9 +3,12 @@ import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Bell, ShieldCheck } from "lucide-react";
 import { AppShell, KpiCard, StatusPill } from "@/components/AppShell";
-import { money } from "@/lib/demo-auth";
+import { money, INTEREST_RATE } from "@/lib/demo-auth";
 import { useAccount } from "@/lib/session";
+import { Wizard } from "@/components/Wizard";
+import { DEFAULT_PRODUCT_ID, getProduct } from "@/lib/loan-products";
 import { getMyOverview, markNotificationsRead, repayLoan } from "@/lib/lending.functions";
+
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
