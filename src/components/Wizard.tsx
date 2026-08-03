@@ -121,9 +121,10 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                 <div className="mt-3 grid grid-cols-3 gap-3">
                   <ReviewItem label="Amount" value={money(loan.amount)} />
                   <ReviewItem label="Term" value={`${loan.term} months`} />
-                  <ReviewItem label="Interest" value="2.5%" />
+                  <ReviewItem label="Interest" value={INTEREST_LABEL} />
                 </div>
               </div>
+              <Breakdown loan={loan} />
               <Field label="Purpose of loan" error={errors.purpose} full>
                 <select value={form.purpose} onChange={e => update("purpose", e.target.value)} className={inputCls(errors.purpose)}>
                   <option value="">Select…</option>
@@ -132,6 +133,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                 </select>
               </Field>
             </div>
+
           )}
 
           {status === "idle" && step === 3 && (
