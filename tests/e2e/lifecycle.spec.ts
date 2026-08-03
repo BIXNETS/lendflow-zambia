@@ -18,6 +18,7 @@ function unique() {
 
 async function signUp(page: Page, creds: ReturnType<typeof unique>) {
   await page.goto("/auth");
+  await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "New client" }).click();
   await page.getByPlaceholder("Joseph Banda").fill("Joseph Banda");
   await page.getByPlaceholder("+260 97 000 0000").fill(creds.phone);
@@ -29,6 +30,7 @@ async function signUp(page: Page, creds: ReturnType<typeof unique>) {
 
 async function signIn(page: Page, email: string, password: string, dest: string) {
   await page.goto("/auth");
+  await page.waitForLoadState("networkidle");
   await page.getByPlaceholder("you@example.com").fill(email);
   await page.getByPlaceholder("••••••••").fill(password);
   await page.locator('button[type="submit"]').click();
