@@ -226,6 +226,20 @@ function ClientDashboard() {
           </section>
         </div>
       </div>
+
+      {wizardOpen && (() => {
+        const p = getProduct(DEFAULT_PRODUCT_ID);
+        const amount = Math.min(Math.max(15000, p.minAmount), p.maxAmount);
+        const term = Math.min(Math.max(12, p.minTerm), p.maxTerm);
+        const serviceFee = Math.round((amount * p.serviceFeePct) / 100);
+        const monthly = (amount + Math.round(amount * INTEREST_RATE)) / term;
+        return (
+          <Wizard
+            loan={{ amount, term, pct: p.serviceFeePct, serviceFee, monthly, productId: p.id }}
+            onClose={() => { setWizardOpen(false); void refresh(); }}
+          />
+        );
+      })()}
     </AppShell>
   );
 }
