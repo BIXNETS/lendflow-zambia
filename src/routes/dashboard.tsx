@@ -8,6 +8,7 @@ import { useAccount } from "@/lib/session";
 import { Wizard } from "@/components/Wizard";
 import { DEFAULT_PRODUCT_ID, getProduct } from "@/lib/loan-products";
 import { getMyOverview, markNotificationsRead, repayLoan } from "@/lib/lending.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 
 type DashboardSearch = { apply?: boolean; product?: string };
