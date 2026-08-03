@@ -1,109 +1,296 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { Bell, ShieldCheck } from "lucide-react";
 import { AppShell, KpiCard, StatusPill } from "@/components/AppShell";
-import {
-  listApplications, money, updateApplication,
-  type Account, type Application,
-} from "@/lib/demo-auth";
+import { money } from "@/lib/demo-auth";
 import { useAccount } from "@/lib/session";
+import {
+  getAdminOverview, decideApplication, disburseLoan, adminRecordRepayment, reviewKycDocument,
+} from "@/lib/lending.functions";
 
 export const Route = createFileRoute("/manager")({
   head: () => ({
     meta: [
       { title: "Manager console — LendFlow Africa" },
-      { name: "description", content: "Review LendFlow Africa loan applications, verify service fee payments and approve 2.5% interest disbursements." },
+      { name: "description", content: "Review LendFlow Africa identity documents and applications, issue loan decisions, disburse mobile money and reconcile repayments." },
       { property: "og:title", content: "Manager console — LendFlow Africa" },
-      { property: "og:description", content: "Review applications and approve disbursements." },
+      { property: "og:description", content: "Review, decide, disburse and reconcile." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   ssr: false,
-  component: ManagerDashboard,
+  component: ManagerConsole,
 });
 
-function ManagerDashboard() {
+type Row = Record<string, any>;
+
+function ManagerConsole() {
   const navigate = useNavigate();
   const { account, loading } = useAccount();
-  const [apps, setApps] = useState<Application[]>([]);
-  const [filter, setFilter] = useState<"all" | Application["status"]>("all");
+  const overview = useServerFn(getAdminOverview);
+  const decide = useServerFn(decideApplication);
+  const disburse = useServerFn(disburseLoan);
+  const repay = useServerFn(adminRecordRepayment);
+  const reviewDoc = useServerFn(reviewKycDocument);
+
+  const [data, setData] = useState<null | {
+    applications: Row[]; loans: Row[]; transactions: Row[]; documents: Row[]; profiles: Row[]; notifications: Row[];
+  }>(null);
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const [tab, setTab] = useState<"applications" | "kyc" | "loans" | "ledger">("applications");
+
+  const refresh = useCallback(async () => {
+    const d = await overview({});
+    setData(d as any);
+  }, [overview]);
 
   useEffect(() => {
     if (loading) return;
     if (!account) { navigate({ to: "/auth" }); return; }
     if (account.role !== "manager") { navigate({ to: "/dashboard" }); return; }
-    setApps(listApplications());
-  }, [navigate, account, loading]);
+    void refresh();
+  }, [loading, account, navigate, refresh]);
 
-  const user: Account | null = account && account.role === "manager" ? account : null;
-  if (!user) return null;
+  if (!account || account.role !== "manager" || !data) return null;
 
-  const act = (id: string, status: Application["status"]) => {
-    updateApplication(id, { status });
-    setApps(listApplications());
+  const run = async (key: string, fn: () => Promise<unknown>) => {
+    setBusy(key); setError("");
+    try { await fn(); await refresh(); }
+    catch (e) { setError(e instanceof Error ? e.message : "Action failed"); }
+    finally { setBusy(null); }
   };
 
-  const shown = filter === "all" ? apps : apps.filter(a => a.status === filter);
-  const pending = apps.filter(a => a.status === "under_review").length;
-  const book = apps.filter(a => a.status === "approved").reduce((s, a) => s + a.amount, 0);
-  const fees = apps.reduce((s, a) => s + a.serviceFee, 0);
+  const kycOf = (userId: string | null) =>
+    (data.profiles.find(p => p.id === userId)?.kyc_status as string) ?? "unknown";
+
+  const pending = data.applications.filter(a => a.status === "under_review").length;
+  const book = data.loans.reduce((s, l) => s + Number(l.principal), 0);
+  const collected = data.transactions.filter(t => t.tx_type === "repayment" && t.status === "succeeded")
+    .reduce((s, t) => s + Number(t.amount), 0);
+  const pendingDocs = data.documents.filter(d => d.status === "pending").length;
+
+  const TABS = [
+    ["applications", `Applications (${pending})`],
+    ["kyc", `Identity (${pendingDocs})`],
+    ["loans", `Loans (${data.loans.length})`],
+    ["ledger", "Ledger"],
+  ] as const;
 
   return (
-    <AppShell user={user} subtitle="Manager · back office">
+    <AppShell user={account} subtitle="Manager · back office">
       <div className="rise">
         <h1 className="text-3xl font-black tracking-tight">Manager console</h1>
-        <p className="mt-1 text-[color:var(--color-muted)]">Review service fees and release 2.5% interest loans.</p>
+        <p className="mt-1 text-[color:var(--color-muted)]">Verify identities, decide applications, disburse and reconcile mobile money.</p>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <KpiCard label="Pending review" value={String(pending)} tone="sun" />
-          <KpiCard label="Total applications" value={String(apps.length)} tone="sky" />
-          <KpiCard label="Approved book" value={money(book)} />
-          <KpiCard label="Service fees collected" value={money(fees)} tone="sky" />
+          <KpiCard label="Awaiting decision" value={String(pending)} tone="sun" />
+          <KpiCard label="Documents to verify" value={String(pendingDocs)} tone="sky" />
+          <KpiCard label="Loan book" value={money(book)} />
+          <KpiCard label="Repayments collected" value={money(collected)} tone="sky" />
         </div>
 
         <div className="mt-8 flex flex-wrap gap-2">
-          {(["all", "under_review", "awaiting_fee", "approved", "declined"] as const).map(f => (
-            <button key={f} onClick={() => setFilter(f)}
-              className={`rounded-full px-4 py-2 text-xs font-bold capitalize transition ${
-                filter === f ? "btn-navy" : "border border-[color:var(--color-line)] bg-white text-[color:var(--color-navy)] hover:bg-[color:var(--color-sky)]"
-              }`}>
-              {f.replace(/_/g, " ")}
-            </button>
+          {TABS.map(([id, label]) => (
+            <button key={id} data-testid={`tab-${id}`} onClick={() => setTab(id)}
+              className={`rounded-full px-4 py-2 text-xs font-bold transition ${
+                tab === id ? "btn-navy" : "border border-[color:var(--color-line)] bg-white text-[color:var(--color-navy)] hover:bg-[color:var(--color-sky)]"
+              }`}>{label}</button>
           ))}
         </div>
 
-        <div className="mt-4 card overflow-hidden">
-          {shown.length === 0 ? (
-            <p className="px-6 py-10 text-center text-sm text-[color:var(--color-muted)]">No applications in this view.</p>
+        {error && <p data-testid="manager-error" className="field-error mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">{error}</p>}
+
+        {tab === "applications" && (
+          <div className="mt-4 card overflow-hidden" data-testid="applications-panel">
+            {data.applications.length === 0 ? (
+              <p className="px-6 py-10 text-center text-sm text-[color:var(--color-muted)]">No applications yet.</p>
+            ) : (
+              <div className="divide-y divide-[color:var(--color-line)]">
+                {data.applications.map(a => {
+                  const kyc = kycOf(a.user_id);
+                  const eligible = kyc === "approved";
+                  const decidable = a.status === "under_review" || a.status === "submitted";
+                  return (
+                    <div key={a.id} data-testid="admin-application" data-status={a.status} className="px-6 py-5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-black">{a.first_name} {a.last_name}</span>
+                        <StatusPill status={a.status} />
+                        <span data-testid="app-kyc" className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold ${
+                          eligible ? "bg-[color:var(--color-mint)] text-[color:var(--color-leaf-dark)]" : "bg-amber-50 text-amber-700"}`}>
+                          <ShieldCheck className="h-3 w-3" /> KYC {kyc}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-sm text-[color:var(--color-muted)]">
+                        {money(Number(a.amount))} over {a.term_months} months · {a.product_title} · service fee {money(Number(a.service_fee ?? 0))} ({a.service_fee_pct}%)
+                      </div>
+                      <div className="mt-1 text-xs text-[color:var(--color-muted)]">
+                        {a.mobile_provider} {a.mobile_number} · {a.email} · {a.phone}
+                        {a.decision_notes ? ` · note: ${a.decision_notes}` : ""}
+                      </div>
+
+                      {decidable && (
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <input
+                            data-testid="decision-notes"
+                            value={notes[a.id] ?? ""}
+                            onChange={e => setNotes(n => ({ ...n, [a.id]: e.target.value }))}
+                            placeholder="Decision note (optional)"
+                            className="min-w-[220px] flex-1 rounded-full border border-[color:var(--color-line)] px-4 py-2 text-sm"
+                          />
+                          <button
+                            data-testid="approve-application"
+                            disabled={!eligible || busy === a.id}
+                            title={eligible ? "" : "Identity verification must be approved first"}
+                            onClick={() => run(a.id, () => decide({ data: { applicationId: a.id, decision: "approved", notes: notes[a.id] || undefined } }))}
+                            className="btn-primary rounded-full px-4 py-2 text-xs font-bold disabled:opacity-40">
+                            Approve
+                          </button>
+                          <button
+                            data-testid="decline-application"
+                            disabled={busy === a.id}
+                            onClick={() => run(a.id, () => decide({ data: { applicationId: a.id, decision: "declined", notes: notes[a.id] || undefined } }))}
+                            className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-100 disabled:opacity-40">
+                            Decline
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === "kyc" && (
+          <div className="mt-4 card overflow-hidden" data-testid="kyc-panel">
+            {data.documents.length === 0 ? (
+              <p className="px-6 py-10 text-center text-sm text-[color:var(--color-muted)]">No documents uploaded yet.</p>
+            ) : (
+              <div className="divide-y divide-[color:var(--color-line)]">
+                {data.documents.map(d => {
+                  const p = data.profiles.find(x => x.id === d.user_id);
+                  return (
+                    <div key={d.id} data-testid="admin-kyc-doc" data-status={d.status} className="flex flex-wrap items-center gap-3 px-6 py-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 font-bold capitalize">
+                          {d.doc_type.replace(/_/g, " ")} <StatusPill status={d.status} />
+                        </div>
+                        <div className="mt-1 text-xs text-[color:var(--color-muted)]">
+                          {p ? `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || d.user_id : d.user_id} · {d.storage_path}
+                        </div>
+                      </div>
+                      {d.status !== "approved" && (
+                        <button data-testid="approve-doc" disabled={busy === d.id}
+                          onClick={() => run(d.id, () => reviewDoc({ data: { docId: d.id, status: "approved" } }))}
+                          className="btn-primary rounded-full px-4 py-2 text-xs font-bold disabled:opacity-40">Verify</button>
+                      )}
+                      {d.status !== "rejected" && (
+                        <button data-testid="reject-doc" disabled={busy === d.id}
+                          onClick={() => run(d.id, () => reviewDoc({ data: { docId: d.id, status: "rejected", notes: "Document unreadable — please re-upload." } }))}
+                          className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-600 disabled:opacity-40">Reject</button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === "loans" && (
+          <div className="mt-4 card overflow-hidden" data-testid="loans-panel">
+            {data.loans.length === 0 ? (
+              <p className="px-6 py-10 text-center text-sm text-[color:var(--color-muted)]">No loans yet.</p>
+            ) : (
+              <div className="divide-y divide-[color:var(--color-line)]">
+                {data.loans.map(l => {
+                  const balance = Number(l.outstanding_principal ?? 0);
+                  const instalment = Math.min(balance, Math.round(Number(l.total_repayment || l.principal) / (l.term_months || 1)));
+                  return (
+                    <div key={l.id} data-testid="admin-loan" data-status={l.status} className="px-6 py-5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-black">{money(Number(l.principal))}</span>
+                        <span className="text-xs text-[color:var(--color-muted)]">· {l.product_title} · {l.term_months} months</span>
+                        <StatusPill status={l.status} />
+                      </div>
+                      <div className="mt-1 text-xs text-[color:var(--color-muted)]">
+                        Total repayable {money(Number(l.total_repayment || l.principal))} · paid {money(Number(l.amount_paid ?? 0))} ·
+                        balance <span data-testid="admin-loan-balance" className="font-bold text-[color:var(--color-fg)]">{money(balance)}</span> · {l.provider} {l.msisdn}
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {l.status === "pending" && (
+                          <button data-testid="disburse-loan" disabled={busy === l.id}
+                            onClick={() => run(l.id, () => disburse({ data: { loanId: l.id } }))}
+                            className="btn-primary rounded-full px-4 py-2 text-xs font-bold disabled:opacity-40">
+                            {busy === l.id ? "Sending…" : `Disburse via ${l.provider}`}
+                          </button>
+                        )}
+                        {l.status === "active" && balance > 0 && (
+                          <button data-testid="admin-record-repayment" disabled={busy === l.id}
+                            onClick={() => run(l.id, () => repay({ data: { loanId: l.id, amount: instalment } }))}
+                            className="rounded-full border border-[color:var(--color-line)] px-4 py-2 text-xs font-bold hover:bg-[color:var(--color-sky)] disabled:opacity-40">
+                            Record repayment {money(instalment)}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === "ledger" && (
+          <div className="mt-4 card overflow-hidden" data-testid="ledger-panel">
+            <table className="w-full text-left text-sm">
+              <thead className="text-[10px] uppercase tracking-widest text-[color:var(--color-muted)]">
+                <tr>
+                  <th className="px-6 py-3">Type</th><th className="py-3">Amount</th><th className="py-3">Provider</th>
+                  <th className="py-3">Status</th><th className="py-3">Reference</th><th className="py-3">When</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[color:var(--color-line)]">
+                {data.transactions.map(t => (
+                  <tr key={t.id} data-testid="ledger-row" data-type={t.tx_type}>
+                    <td className="px-6 py-3 font-bold capitalize">{t.tx_type === "commitment" ? "service fee" : t.tx_type}</td>
+                    <td className="py-3 tabular-nums">{money(Number(t.amount))}</td>
+                    <td className="py-3">{t.provider}</td>
+                    <td className="py-3"><StatusPill status={t.status} /></td>
+                    <td className="py-3 text-xs text-[color:var(--color-muted)]">{t.provider_ref}</td>
+                    <td className="py-3 text-xs text-[color:var(--color-muted)]">{new Date(t.occurred_at).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {data.transactions.length === 0 && (
+              <p className="px-6 py-10 text-center text-sm text-[color:var(--color-muted)]">No transactions recorded yet.</p>
+            )}
+          </div>
+        )}
+
+        <section data-testid="admin-notifications" className="mt-8 card overflow-hidden">
+          <div className="border-b border-[color:var(--color-line)] px-6 py-4">
+            <h2 className="inline-flex items-center gap-2 text-lg font-bold"><Bell className="h-4 w-4" /> Back-office notifications</h2>
+          </div>
+          {data.notifications.length === 0 ? (
+            <p className="px-6 py-8 text-center text-sm text-[color:var(--color-muted)]">Nothing yet.</p>
           ) : (
-            <div className="divide-y divide-[color:var(--color-line)]">
-              {shown.map(a => (
-                <div key={a.id} className="grid gap-4 px-6 py-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-black">{a.name}</span>
-                      <StatusPill status={a.status} />
-                    </div>
-                    <div className="mt-1 text-sm text-[color:var(--color-muted)]">
-                      {a.id} · {money(a.amount)} over {a.term} months · {a.productTitle ?? a.purpose}
-                    </div>
-                    <div className="mt-1 text-xs text-[color:var(--color-muted)]">
-                      Service fee {money(a.serviceFee)} ({a.serviceFeePct}%) · {a.provider} {a.msisdn} · {a.email}
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 flex-wrap gap-2">
-                    <button onClick={() => act(a.id, "approved")}
-                      className="btn-primary rounded-full px-4 py-2 text-xs font-bold">Approve</button>
-                    <button onClick={() => act(a.id, "declined")}
-                      className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-100">Decline</button>
-                    <button onClick={() => act(a.id, "under_review")}
-                      className="rounded-full border border-[color:var(--color-line)] px-4 py-2 text-xs font-bold text-[color:var(--color-navy)] hover:bg-[color:var(--color-sky)]">Reset</button>
-                  </div>
-                </div>
+            <ul className="divide-y divide-[color:var(--color-line)]">
+              {data.notifications.map(n => (
+                <li key={n.id} data-testid="admin-notification" data-kind={n.kind} className="px-6 py-4">
+                  <div className="text-sm font-bold">{n.title}</div>
+                  <div className="mt-1 text-xs text-[color:var(--color-muted)]">{n.body}</div>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
-        </div>
+        </section>
       </div>
     </AppShell>
   );

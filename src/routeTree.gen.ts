@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as FaqsRouteImport } from './routes/faqs'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as KycRouteImport } from './routes/kyc'
 import { Route as LoansRouteImport } from './routes/loans'
 import { Route as ManagerRouteImport } from './routes/manager'
 import { Route as ApiPublicSeedAdminRouteImport } from './routes/api/public/seed-admin'
@@ -56,6 +57,11 @@ const HowItWorksRoute = HowItWorksRouteImport.update({
   path: '/how-it-works',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KycRoute = KycRouteImport.update({
+  id: '/kyc',
+  path: '/kyc',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoansRoute = LoansRouteImport.update({
   id: '/loans',
   path: '/loans',
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/faqs': typeof FaqsRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/kyc': typeof KycRoute
   '/loans': typeof LoansRoute
   '/manager': typeof ManagerRoute
   '/api/public/seed-admin': typeof ApiPublicSeedAdminRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/faqs': typeof FaqsRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/kyc': typeof KycRoute
   '/loans': typeof LoansRoute
   '/manager': typeof ManagerRoute
   '/api/public/seed-admin': typeof ApiPublicSeedAdminRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/faqs': typeof FaqsRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/kyc': typeof KycRoute
   '/loans': typeof LoansRoute
   '/manager': typeof ManagerRoute
   '/api/public/seed-admin': typeof ApiPublicSeedAdminRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/faqs'
     | '/how-it-works'
+    | '/kyc'
     | '/loans'
     | '/manager'
     | '/api/public/seed-admin'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/faqs'
     | '/how-it-works'
+    | '/kyc'
     | '/loans'
     | '/manager'
     | '/api/public/seed-admin'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/faqs'
     | '/how-it-works'
+    | '/kyc'
     | '/loans'
     | '/manager'
     | '/api/public/seed-admin'
@@ -167,6 +179,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   FaqsRoute: typeof FaqsRoute
   HowItWorksRoute: typeof HowItWorksRoute
+  KycRoute: typeof KycRoute
   LoansRoute: typeof LoansRoute
   ManagerRoute: typeof ManagerRoute
   ApiPublicSeedAdminRoute: typeof ApiPublicSeedAdminRoute
@@ -224,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HowItWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/kyc': {
+      id: '/kyc'
+      path: '/kyc'
+      fullPath: '/kyc'
+      preLoaderRoute: typeof KycRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/loans': {
       id: '/loans'
       path: '/loans'
@@ -263,6 +283,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   FaqsRoute: FaqsRoute,
   HowItWorksRoute: HowItWorksRoute,
+  KycRoute: KycRoute,
   LoansRoute: LoansRoute,
   ManagerRoute: ManagerRoute,
   ApiPublicSeedAdminRoute: ApiPublicSeedAdminRoute,

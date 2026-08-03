@@ -1,10 +1,13 @@
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, User, Mail, Phone, Smartphone, CheckCircle2, Loader } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { ArrowRight, User, Mail, Phone, Smartphone, CheckCircle2, Loader, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { money, saveApplication, computeLoan, type Application } from "@/lib/demo-auth";
-import { useAccount } from "@/lib/session";
+import { money, computeLoan } from "@/lib/demo-auth";
+import { useAccount, useKycStatus } from "@/lib/session";
+import { submitApplication } from "@/lib/lending.functions";
 import { LOAN_PRODUCTS, getProduct, fitToProduct, DEFAULT_PRODUCT_ID } from "@/lib/loan-products";
+
 
 export type LoanCtx = {
   amount: number; term: number; pct: number; serviceFee: number; monthly: number;
@@ -21,7 +24,12 @@ type Form = {
 export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }) {
   const navigate = useNavigate();
   const { account: user } = useAccount();
+  const kyc = useKycStatus();
+  const verified = kyc === "approved";
+  const send = useServerFn(submitApplication);
+  const [submitError, setSubmitError] = useState("");
   const [step, setStep] = useState(1);
+
   const [form, setForm] = useState<Form>({
     firstName: user?.name.split(" ")[0] ?? "", lastName: user?.name.split(" ")[1] ?? "",
     email: user?.email ?? "", phone: user?.phone ?? "",
@@ -87,7 +95,9 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
         e.amount = `${product.title}: ${money(product.minAmount)} – ${money(product.maxAmount)}`;
       if (term < product.minTerm || term > product.maxTerm)
         e.term = `${product.title}: ${product.minTerm} – ${product.maxTerm} months`;
-      if (!form.eligibility) e.eligibility = "Please confirm you meet the requirements";
+      if (!verified) e.eligibility = "Verify your identity before applying";
+      else if (!form.eligibility) e.eligibility = "Please confirm you meet the requirements";
+
     }
     if (s === 3) {
       if (!form.provider) e.provider = "Choose a mobile money provider";
@@ -113,20 +123,37 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
   };
   const back = () => setStep(s => Math.max(1, s - 1));
 
-  const submit = () => {
+  const submit = async () => {
     setStatus("processing");
-    const app: Application = {
-      id: "LF-" + Math.floor(10000 + Math.random() * 89999),
-      email: form.email.trim().toLowerCase(),
-      name: `${form.firstName} ${form.lastName}`.trim(),
-      amount: L.amount, term: L.term,
-      serviceFeePct: L.pct, serviceFee: L.serviceFee,
-      productId: product.id, productTitle: product.title, interestRate: product.interestRate,
-      provider: form.provider, msisdn: form.msisdn, purpose: product.title,
-      status: "under_review", createdAt: new Date().toISOString(),
-    };
-    setTimeout(() => { saveApplication(app); setStatus("done"); }, 1800);
+    setSubmitError("");
+    try {
+      await send({
+        data: {
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
+          email: form.email.trim().toLowerCase(),
+          phone: form.phone.trim(),
+          productId: product.id,
+          productTitle: product.title,
+          amount: L.amount,
+          term: L.term,
+          serviceFeePct: L.pct,
+          serviceFee: L.serviceFee,
+          interestRate: product.interestRate,
+          monthly: Math.round(L.monthly),
+          provider: form.provider,
+          msisdn: form.msisdn.trim(),
+          purpose: product.title,
+        },
+      });
+      setStatus("done");
+    } catch (e) {
+      setSubmitError(e instanceof Error ? e.message : "We could not submit your application. Please try again.");
+      setStatus("idle");
+      setStep(4);
+    }
   };
+
 
   const stepTitle = ["Your details & service", "Amount & terms", "Service fee payment", "Review & submit"][step - 1];
 
@@ -231,7 +258,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
 
               <Breakdown loan={L} />
 
-              <div className="rounded-2xl border border-[color:var(--color-line)] p-5">
+              <div data-testid="eligibility-block" className="rounded-2xl border border-[color:var(--color-line)] p-5">
                 <div className="text-xs font-bold uppercase tracking-widest text-[color:var(--color-leaf-dark)]">
                   {product.title} eligibility
                 </div>
@@ -242,13 +269,40 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                     </li>
                   ))}
                 </ul>
-                <label className="mt-4 flex items-start gap-3 text-sm">
-                  <input type="checkbox" checked={form.eligibility} onChange={e => update("eligibility", e.target.checked)}
+
+                <div
+                  data-testid="kyc-gate"
+                  data-verified={verified ? "true" : "false"}
+                  className={cn(
+                    "mt-4 flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 text-sm",
+                    verified ? "bg-[color:var(--color-mint)] text-[color:var(--color-leaf-dark)]" : "bg-amber-50 text-amber-800",
+                  )}
+                >
+                  <ShieldCheck className="h-4 w-4 shrink-0" />
+                  <span className="min-w-0 flex-1 font-semibold">
+                    {verified
+                      ? "Identity verified — you can confirm eligibility."
+                      : kyc === "signed_out"
+                        ? "Sign in and verify your identity to continue."
+                        : `Identity verification ${kyc ?? "loading"} — required before you can apply.`}
+                  </span>
+                  {!verified && (
+                    <Link to={kyc === "signed_out" ? "/auth" : "/kyc"} onClick={onClose}
+                      className="btn-navy rounded-full px-4 py-2 text-xs font-bold">
+                      {kyc === "signed_out" ? "Sign in" : "Verify identity"}
+                    </Link>
+                  )}
+                </div>
+
+                <label className={cn("mt-4 flex items-start gap-3 text-sm", !verified && "opacity-50")}>
+                  <input type="checkbox" disabled={!verified} checked={form.eligibility}
+                    onChange={e => update("eligibility", e.target.checked)}
                     className="mt-1 h-4 w-4 accent-[color:var(--color-leaf)]" />
                   <span className="text-[color:var(--color-muted)]">I confirm I meet these {product.title.toLowerCase()} requirements.</span>
                 </label>
-                {errors.eligibility && <p className="mt-1 text-xs font-semibold text-red-600">{errors.eligibility}</p>}
+                {errors.eligibility && <p className="mt-1 field-error text-xs font-semibold text-red-600">{errors.eligibility}</p>}
               </div>
+
             </div>
           )}
 
@@ -312,7 +366,13 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                   <ReviewItem label="Wallet" value={form.msisdn} />
                 </div>
               </div>
+              {submitError && (
+                <p data-testid="submit-error" className="field-error rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
+                  {submitError}
+                </p>
+              )}
             </div>
+
           )}
         </div>
 

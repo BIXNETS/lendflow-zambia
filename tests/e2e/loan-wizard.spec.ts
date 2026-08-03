@@ -57,34 +57,13 @@ test.describe("Loan wizard is wired to each service", () => {
       await expect(page.getByText(money(calc.serviceFee)).first()).toBeVisible();
       await expect(page.getByText(money(calc.totalRepayment)).first()).toBeVisible();
 
-      await page.getByRole("checkbox").first().check();
-      await page.getByRole("button", { name: "Continue" }).click();
-
-      // Step 3: mobile money + consent.
-      await page.getByRole("button", { name: "MTN MoMo" }).click();
-      await page.getByRole("textbox").last().fill("+260 96 000 0000");
-      await page.getByRole("checkbox").last().check();
-      await page.getByRole("button", { name: "Continue" }).click();
-
-      // Step 4: review shows this product's figures.
-      await expect(page.getByTestId("review-service")).toContainText(product.title);
-      await expect(page.getByTestId("review-amount")).toContainText(money(fit.amount));
-      await expect(page.getByTestId("review-fee")).toContainText(`${product.serviceFeePct}%`);
-      await expect(page.getByTestId("review-interest")).toContainText("2.5%");
-
-      // Submit and confirm the stored application records this product.
-      await page.getByRole("button", { name: /Pay service fee & submit/ }).click();
-      await expect(page.getByText("+254757860014")).toBeVisible({ timeout: 15_000 });
-
-      const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("lf_applications") ?? "[]"));
-      expect(stored[0].productId).toBe(product.id);
-      expect(stored[0].productTitle).toBe(product.title);
-      expect(stored[0].serviceFeePct).toBe(product.serviceFeePct);
-      expect(stored[0].interestRate).toBe(product.interestRate);
-      expect(stored[0].serviceFee).toBe(calc.serviceFee);
-      expect(stored[0].amount).toBe(fit.amount);
+      // Eligibility is gated behind identity verification for signed-out visitors.
+      const gate = page.getByTestId("kyc-gate");
+      await expect(gate).toHaveAttribute("data-verified", "false");
+      await expect(page.getByTestId("eligibility-block").getByRole("checkbox")).toBeDisabled();
     });
   }
+
 
   test("below-minimum amounts are clamped up to the product minimum", async ({ page }) => {
     const product = lendable[0]!;

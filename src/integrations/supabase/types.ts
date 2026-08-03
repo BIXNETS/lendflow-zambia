@@ -117,6 +117,10 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          currency_code: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_notes: string | null
           email: string
           employment: string | null
           first_name: string
@@ -124,21 +128,31 @@ export type Database = {
           id_back_path: string | null
           id_front_path: string | null
           last_name: string
+          loan_id: string | null
           mobile_number: string | null
           mobile_provider: string | null
           monthly_income: number | null
           monthly_payment: number
           phone: string
+          product_id: string | null
+          product_title: string | null
           purpose: string | null
           rate: number
           selfie_path: string | null
+          service_fee: number
+          service_fee_pct: number
           status: string
           term_months: number
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           amount: number
           created_at?: string
+          currency_code?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_notes?: string | null
           email: string
           employment?: string | null
           first_name: string
@@ -146,21 +160,31 @@ export type Database = {
           id_back_path?: string | null
           id_front_path?: string | null
           last_name: string
+          loan_id?: string | null
           mobile_number?: string | null
           mobile_provider?: string | null
           monthly_income?: number | null
           monthly_payment: number
           phone: string
+          product_id?: string | null
+          product_title?: string | null
           purpose?: string | null
           rate: number
           selfie_path?: string | null
+          service_fee?: number
+          service_fee_pct?: number
           status?: string
           term_months: number
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           amount?: number
           created_at?: string
+          currency_code?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_notes?: string | null
           email?: string
           employment?: string | null
           first_name?: string
@@ -168,19 +192,33 @@ export type Database = {
           id_back_path?: string | null
           id_front_path?: string | null
           last_name?: string
+          loan_id?: string | null
           mobile_number?: string | null
           mobile_provider?: string | null
           monthly_income?: number | null
           monthly_payment?: number
           phone?: string
+          product_id?: string | null
+          product_title?: string | null
           purpose?: string | null
           rate?: number
           selfie_path?: string | null
+          service_fee?: number
+          service_fee_pct?: number
           status?: string
           term_months?: number
           updated_at?: string
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "loan_applications_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       loan_tiers: {
         Row: {
@@ -260,6 +298,7 @@ export type Database = {
       loans: {
         Row: {
           amount_paid: number
+          application_id: string | null
           country_code: string | null
           created_at: string
           currency_code: string
@@ -267,17 +306,24 @@ export type Database = {
           due_at: string | null
           id: string
           interest_rate: number
+          msisdn: string | null
           outstanding_principal: number
           principal: number
+          product_id: string | null
+          product_title: string | null
+          provider: string | null
           repayment_frequency_days: number
+          service_fee: number
           status: string
           term_months: number
-          tier_id: string
+          tier_id: string | null
+          total_repayment: number
           updated_at: string
           user_id: string
         }
         Insert: {
           amount_paid?: number
+          application_id?: string | null
           country_code?: string | null
           created_at?: string
           currency_code?: string
@@ -285,17 +331,24 @@ export type Database = {
           due_at?: string | null
           id?: string
           interest_rate: number
+          msisdn?: string | null
           outstanding_principal: number
           principal: number
+          product_id?: string | null
+          product_title?: string | null
+          provider?: string | null
           repayment_frequency_days: number
+          service_fee?: number
           status?: string
           term_months: number
-          tier_id: string
+          tier_id?: string | null
+          total_repayment?: number
           updated_at?: string
           user_id: string
         }
         Update: {
           amount_paid?: number
+          application_id?: string | null
           country_code?: string | null
           created_at?: string
           currency_code?: string
@@ -303,21 +356,91 @@ export type Database = {
           due_at?: string | null
           id?: string
           interest_rate?: number
+          msisdn?: string | null
           outstanding_principal?: number
           principal?: number
+          product_id?: string | null
+          product_title?: string | null
+          provider?: string | null
           repayment_frequency_days?: number
+          service_fee?: number
           status?: string
           term_months?: number
-          tier_id?: string
+          tier_id?: string | null
+          total_repayment?: number
           updated_at?: string
           user_id?: string
         }
         Relationships: [
           {
+            foreignKeyName: "loans_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "loan_applications"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "loans_tier_id_fkey"
             columns: ["tier_id"]
             isOneToOne: false
             referencedRelation: "loan_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          application_id: string | null
+          audience: string
+          body: string
+          created_at: string
+          id: string
+          kind: string
+          loan_id: string | null
+          read_at: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          application_id?: string | null
+          audience?: string
+          body: string
+          created_at?: string
+          id?: string
+          kind: string
+          loan_id?: string | null
+          read_at?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          application_id?: string | null
+          audience?: string
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          loan_id?: string | null
+          read_at?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "loan_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
             referencedColumns: ["id"]
           },
         ]
