@@ -66,8 +66,10 @@ function Landing() {
   const [pct, setPct] = useState(12);
 
   const serviceFee = Math.round((amount * pct) / 100);
-  const totalRepaid = Math.round(amount * 1.025); // flat 2.5% interest
+  const interest = Math.round(amount * INTEREST_RATE); // flat 2.5% interest
+  const totalRepaid = amount + interest;
   const monthly = totalRepaid / term;
+
   const disbursed = useCounter(50);
 
   return (
