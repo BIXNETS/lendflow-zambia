@@ -125,11 +125,11 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                 </div>
               </div>
               <Breakdown loan={loan} />
-              <Field label="Purpose of loan" error={errors.purpose} full>
+              <Field label="Loan type" error={errors.purpose} full>
                 <select value={form.purpose} onChange={e => update("purpose", e.target.value)} className={inputCls(errors.purpose)}>
                   <option value="">Select…</option>
-                  <option>Business stock</option><option>Farming inputs</option>
-                  <option>School fees</option><option>Home improvement</option><option>Emergency</option>
+                  <option>Personal loan</option><option>Business loan</option><option>Agri loan</option><option>Civil servant loan</option><option>Scheme loan</option><option>Collateral backed loan</option><option>Salary advance</option>
+                  <option>Education loan</option>
                 </select>
               </Field>
             </div>
