@@ -78,7 +78,7 @@ function ClientDashboard() {
 
   useEffect(() => {
     if (loading) return;
-    if (!account) { navigate({ to: "/auth", search: { redirect: "/dashboard" } as never }); return; }
+    if (!account) { navigate({ to: "/auth" }); return; }
     if (account.role === "manager") { navigate({ to: "/manager" }); return; }
     void refresh();
   }, [loading, account, navigate, refresh]);
