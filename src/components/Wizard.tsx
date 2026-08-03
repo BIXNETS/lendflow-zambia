@@ -94,7 +94,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
         <div className="max-h-[70vh] overflow-y-auto px-6 py-6">
           {status === "processing" && <ProcessingView />}
           {status === "done" && (
-            <SuccessView service fee={loan.commitment} onDashboard={() => { onClose(); navigate({ to: "/dashboard" }); }} />
+            <SuccessView serviceFee={loan.commitment} onDashboard={() => { onClose(); navigate({ to: "/dashboard" }); }} />
           )}
 
           {status === "idle" && step === 1 && (
@@ -236,7 +236,7 @@ function SuccessView({ commitment, onDashboard }: { commitment: number; onDashbo
           <path className="check-path" d="M4 12l5 5 11-11" />
         </svg>
       </div>
-      <div className="mt-5 text-2xl font-black">Service fee of {money(service fee)} received!</div>
+      <div className="mt-5 text-2xl font-black">Service fee of {money(serviceFee)} received!</div>
       <p className="mt-2 max-w-sm text-sm text-[color:var(--color-muted)]">
         Your application is now with a LendFlow manager. Track its status from your dashboard.
       </p>

@@ -69,7 +69,7 @@ function Loans() {
 
       <section className="border-y border-[color:var(--color-line)] bg-[color:var(--color-mint)]/60">
         <dl className="mx-auto grid max-w-5xl gap-8 px-6 py-12 text-center sm:grid-cols-3">
-          {[["0%", "Interest charged"], ["24h", "Typical payout"], ["4", "Countries served"]].map(([v, l]) => (
+          {[["2.5%", "Interest charged"], ["24h", "Typical payout"], ["4", "Countries served"]].map(([v, l]) => (
             <div key={l}>
               <dt className="text-4xl font-black text-[color:var(--color-leaf-dark)]">{v}</dt>
               <dd className="mt-1 text-sm font-semibold text-[color:var(--color-muted)]">{l}</dd>

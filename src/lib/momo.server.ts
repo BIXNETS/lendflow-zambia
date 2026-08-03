@@ -9,8 +9,8 @@ export const momoEventSchema = z.object({
     "disbursement.failed",
     "repayment.succeeded",
     "repayment.failed",
-    "service fee.succeeded",
-    "service fee.failed",
+    "commitment.succeeded",
+    "commitment.failed",
   ]),
   provider: z.string().min(2).max(50),
   reference: z.string().min(1).max(200),
@@ -46,13 +46,13 @@ export function timestampFresh(header: string | null, toleranceSec = 300): boole
 
 type Admin = Awaited<typeof import("@/integrations/supabase/client.server")>["supabaseAdmin"];
 
-const TX_TYPE: Record<string, "disbursement" | "repayment" | "service fee"> = {
+const TX_TYPE: Record<string, "disbursement" | "repayment" | "commitment"> = {
   "disbursement.succeeded": "disbursement",
   "disbursement.failed": "disbursement",
   "repayment.succeeded": "repayment",
   "repayment.failed": "repayment",
-  "service fee.succeeded": "service fee",
-  "service fee.failed": "service fee",
+  "commitment.succeeded": "commitment",
+  "commitment.failed": "commitment",
 };
 
 /**
@@ -96,7 +96,7 @@ export async function reconcileEvent(supabaseAdmin: Admin, event: MomoEvent) {
     return { applied: false, reason: alreadySettled ? "duplicate" : "not_successful" };
   }
 
-  if (txType === "service fee" && event.application_id) {
+  if (txType === "commitment" && event.application_id) {
     await supabaseAdmin
       .from("loan_applications")
       .update({ status: "commitment_paid" })

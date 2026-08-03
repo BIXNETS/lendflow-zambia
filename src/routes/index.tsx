@@ -55,7 +55,7 @@ const OPTIONS = [
 
 const TESTIMONIALS = [
   { name: "Grace M.", role: "Market vendor, Lusaka", img: heroVendor, quote: "I doubled my stock before the festive rush. The money was in my wallet the same day." },
-  { name: "Joseph B.", role: "Farmer, Kabwe", img: farmer, quote: "No interest, no hidden fees. I knew exactly what I had to repay from day one." },
+  { name: "Joseph B.", role: "Farmer, Kabwe", img: farmer, quote: "A flat 2.5% and no hidden fees. I knew exactly what I had to repay from day one." },
   { name: "Amina K.", role: "Shop owner, Accra", img: shopOwner, quote: "Applying took ten minutes on my phone. LendFlow made growing my shop possible." },
 ];
 
@@ -65,7 +65,7 @@ function Landing() {
   const [term, setTerm] = useState(12);
   const [pct, setPct] = useState(12);
 
-  const service fee = Math.round((amount * pct) / 100);
+  const serviceFee = Math.round((amount * pct) / 100);
   const monthly = amount / term; // 2.5% interest
   const disbursed = useCounter(50);
 
@@ -174,7 +174,7 @@ function Landing() {
               <SliderRow label="Service fee (10–15%)" value={`${pct}%`} min={10} max={15} step={1} v={pct} onChange={setPct} className="mt-6" />
             </div>
             <div className="mt-8 grid grid-cols-3 gap-3 text-center">
-              <Stat label="Service fee" value={money(service fee)} highlight />
+              <Stat label="Service fee" value={money(serviceFee)} highlight />
               <Stat label="Monthly" value={money(monthly)} />
               <Stat label="Total repaid" value={money(amount)} />
             </div>
@@ -246,7 +246,7 @@ function Landing() {
       <SiteFooter />
 
       {wizardOpen && (
-        <Wizard onClose={() => setWizardOpen(false)} loan={{ amount, term, pct, commitment, monthly }} />
+        <Wizard onClose={() => setWizardOpen(false)} loan={{ amount, term, pct, commitment: serviceFee, monthly }} />
       )}
     </div>
   );
