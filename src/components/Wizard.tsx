@@ -228,7 +228,7 @@ function ProcessingView() {
   );
 }
 
-function SuccessView({ commitment, onDashboard }: { commitment: number; onDashboard: () => void }) {
+function SuccessView({ serviceFee, onDashboard }: { serviceFee: number; onDashboard: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-14 text-center">
       <div className="grid h-16 w-16 place-items-center rounded-full bg-[color:var(--color-mint)] ring-2 ring-[color:var(--color-leaf)]/50">
