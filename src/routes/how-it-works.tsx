@@ -76,7 +76,7 @@ function HowItWorks() {
       </section>
 
       <SiteFooter />
-      {open && <Wizard onClose={() => setOpen(false)} loan={{ amount: 15000, term: 12, pct: 12, commitment: 1800, monthly: 1250 }} />}
+      {open && <Wizard onClose={() => setOpen(false)} loan={{ amount: 15000, term: 12, pct: 12, serviceFee: 1800, monthly: 1250 }} />}
     </div>
   );
 }

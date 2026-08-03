@@ -4,7 +4,7 @@ import { ArrowRight, User, Mail, Phone, Smartphone, CheckCircle2, Loader } from 
 import { cn } from "@/lib/utils";
 import { currentUser, money, saveApplication, type Application } from "@/lib/demo-auth";
 
-export type LoanCtx = { amount: number; term: number; pct: number; commitment: number; monthly: number };
+export type LoanCtx = { amount: number; term: number; pct: number; serviceFee: number; monthly: number };
 
 /* ---------------- Wizard ---------------- */
 type Form = {
@@ -61,7 +61,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
       email: form.email.trim().toLowerCase(),
       name: `${form.firstName} ${form.lastName}`.trim(),
       amount: loan.amount, term: loan.term,
-      commitmentPct: loan.pct, commitment: loan.commitment,
+      serviceFeePct: loan.pct, serviceFee: loan.serviceFee,
       provider: form.provider, msisdn: form.msisdn, purpose: form.purpose,
       status: "under_review", createdAt: new Date().toISOString(),
     };
@@ -94,7 +94,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
         <div className="max-h-[70vh] overflow-y-auto px-6 py-6">
           {status === "processing" && <ProcessingView />}
           {status === "done" && (
-            <SuccessView serviceFee={loan.commitment} onDashboard={() => { onClose(); navigate({ to: "/dashboard" }); }} />
+            <SuccessView serviceFee={loan.serviceFee} onDashboard={() => { onClose(); navigate({ to: "/dashboard" }); }} />
           )}
 
           {status === "idle" && step === 1 && (
@@ -138,7 +138,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
             <div className="space-y-5">
               <div className="rounded-2xl border border-[color:var(--color-leaf)]/40 bg-[color:var(--color-mint)] p-5">
                 <div className="text-xs font-bold uppercase tracking-widest text-[color:var(--color-leaf-dark)]">Service fee due now</div>
-                <div className="mt-1 text-3xl font-black">{money(loan.commitment)}</div>
+                <div className="mt-1 text-3xl font-black">{money(loan.serviceFee)}</div>
                 <p className="mt-1 text-xs text-[color:var(--color-muted)]">
                   {loan.pct}% of {money(loan.amount)}, paid once up front. Your loan then carries a flat 2.5% interest — you repay {money(Math.round(loan.amount * 1.025))} in total.
                 </p>
@@ -163,7 +163,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                 <input type="checkbox" checked={form.consent} onChange={e => update("consent", e.target.checked)}
                   className="mt-1 h-4 w-4 accent-[color:var(--color-leaf)]" />
                 <span className="text-[color:var(--color-muted)]">
-                  I authorise LendFlow Africa to collect the {money(loan.commitment)} service fee from this wallet, refundable if declined.
+                  I authorise LendFlow Africa to collect the {money(loan.serviceFee)} service fee from this wallet, refundable if declined.
                 </span>
               </label>
               {errors.consent && <p className="text-sm text-red-600">{errors.consent}</p>}
@@ -178,7 +178,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                   <ReviewItem label="Amount" value={money(loan.amount)} />
                   <ReviewItem label="Term" value={`${loan.term} mo`} />
                   <ReviewItem label="Interest" value="2.5%" />
-                  <ReviewItem label="Service fee" value={`${money(loan.commitment)} (${loan.pct}%)`} />
+                  <ReviewItem label="Service fee" value={`${money(loan.serviceFee)} (${loan.pct}%)`} />
                 </div>
               </div>
               <div className="card p-5">

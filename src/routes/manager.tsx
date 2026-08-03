@@ -45,7 +45,7 @@ function ManagerDashboard() {
   const shown = filter === "all" ? apps : apps.filter(a => a.status === filter);
   const pending = apps.filter(a => a.status === "under_review").length;
   const book = apps.filter(a => a.status === "approved").reduce((s, a) => s + a.amount, 0);
-  const fees = apps.reduce((s, a) => s + a.commitment, 0);
+  const fees = apps.reduce((s, a) => s + a.serviceFee, 0);
 
   return (
     <AppShell user={user} subtitle="Manager · back office">
@@ -87,7 +87,7 @@ function ManagerDashboard() {
                       {a.id} · {money(a.amount)} over {a.term} months · {a.purpose}
                     </div>
                     <div className="mt-1 text-xs text-[color:var(--color-muted)]">
-                      Service fee {money(a.commitment)} ({a.commitmentPct}%) · {a.provider} {a.msisdn} · {a.email}
+                      Service fee {money(a.serviceFee)} ({a.serviceFeePct}%) · {a.provider} {a.msisdn} · {a.email}
                     </div>
                   </div>
                   <div className="flex shrink-0 flex-wrap gap-2">

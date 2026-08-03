@@ -247,7 +247,7 @@ function Landing() {
       <SiteFooter />
 
       {wizardOpen && (
-        <Wizard onClose={() => setWizardOpen(false)} loan={{ amount, term, pct, commitment: serviceFee, monthly }} />
+        <Wizard onClose={() => setWizardOpen(false)} loan={{ amount, term, pct, serviceFee: serviceFee, monthly }} />
       )}
     </div>
   );
