@@ -121,7 +121,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                 <div className="mt-3 grid grid-cols-3 gap-3">
                   <ReviewItem label="Amount" value={money(loan.amount)} />
                   <ReviewItem label="Term" value={`${loan.term} months`} />
-                  <ReviewItem label="Interest" value="0%" />
+                  <ReviewItem label="Interest" value="2.5%" />
                 </div>
               </div>
               <Field label="Purpose of loan" error={errors.purpose} full>
@@ -140,7 +140,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                 <div className="text-xs font-bold uppercase tracking-widest text-[color:var(--color-leaf-dark)]">Service fee due now</div>
                 <div className="mt-1 text-3xl font-black">{money(loan.commitment)}</div>
                 <p className="mt-1 text-xs text-[color:var(--color-muted)]">
-                  {loan.pct}% of {money(loan.amount)} — this replaces interest. You repay only {money(loan.amount)}.
+                  {loan.pct}% of {money(loan.amount)}, paid once up front. Your loan then carries a flat 2.5% interest — you repay {money(Math.round(loan.amount * 1.025))} in total.
                 </p>
               </div>
               <Field label="Mobile money provider" error={errors.provider} full>
@@ -177,7 +177,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                 <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
                   <ReviewItem label="Amount" value={money(loan.amount)} />
                   <ReviewItem label="Term" value={`${loan.term} mo`} />
-                  <ReviewItem label="Interest" value="0%" />
+                  <ReviewItem label="Interest" value="2.5%" />
                   <ReviewItem label="Service fee" value={`${money(loan.commitment)} (${loan.pct}%)`} />
                 </div>
               </div>

@@ -66,7 +66,8 @@ function Landing() {
   const [pct, setPct] = useState(12);
 
   const serviceFee = Math.round((amount * pct) / 100);
-  const monthly = amount / term; // 2.5% interest
+  const totalRepaid = Math.round(amount * 1.025); // flat 2.5% interest
+  const monthly = totalRepaid / term;
   const disbursed = useCounter(50);
 
   return (
@@ -176,7 +177,7 @@ function Landing() {
             <div className="mt-8 grid grid-cols-3 gap-3 text-center">
               <Stat label="Service fee" value={money(serviceFee)} highlight />
               <Stat label="Monthly" value={money(monthly)} />
-              <Stat label="Total repaid" value={money(amount)} />
+              <Stat label="Total repaid" value={money(totalRepaid)} />
             </div>
             <button onClick={() => setWizardOpen(true)}
               className="btn-primary mt-8 flex w-full items-center justify-center gap-2 rounded-xl px-6 py-4 text-base font-bold transition">
