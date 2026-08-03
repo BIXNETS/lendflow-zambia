@@ -126,7 +126,18 @@ export function useKycStatus() {
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN" || event === "SIGNED_OUT") void load();
     });
-    return () => { alive = false; data.subscription.unsubscribe(); };
+    // keep the gate fresh: an admin can approve documents while this page is open
+    const timer = setInterval(() => { void load(); }, 10000);
+    const onFocus = () => { void load(); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    return () => {
+      alive = false;
+      data.subscription.unsubscribe();
+      clearInterval(timer);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
   }, []);
 
   return status;
