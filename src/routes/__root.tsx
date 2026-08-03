@@ -7,13 +7,14 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lendflow — Smart financing, built to let your life flow." },
-      { name: "description", content: "Get approved in minutes with competitive rates and flexible terms. No hidden fees, just seamless capital." },
+      { title: "LendFlow Africa — Quick Loans. Real Growth." },
+      { name: "description", content: "0% interest mobile money micro loans across Africa. Pay a 10-15% commitment, get funded to your mobile wallet." },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
     ],
   }),
   component: RootComponent,
@@ -29,7 +30,7 @@ function RootComponent() {
 
 function RootDocument({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <HeadContent />
       </head>

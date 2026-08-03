@@ -1,111 +1,104 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --color-bg: #ffffff;
-  --color-fg: #0a0a0f;
-  --color-muted: #6b7280;
+
+  --color-bg: #f4f9f5;
+  --color-fg: #14294d;
+  --color-muted: #5a6b85;
   --color-card: #ffffff;
-  --color-border: rgba(15, 23, 42, 0.08);
-  --color-brand-1: #6366f1;
-  --color-brand-2: #8b5cf6;
-  --color-accent-1: #10b981;
-  --color-accent-2: #14b8a6;
+  --color-line: #dbe7de;
+
+  --color-navy: #16305c;
+  --color-navy-deep: #0f2547;
+  --color-navy-soft: #e8eefa;
+  --color-leaf: #2fae4a;
+  --color-leaf-dark: #1d8f3c;
+  --color-lime: #7ed321;
+  --color-mint: #e7f8ec;
+  --color-sun: #ffb62e;
+  --color-sky: #eaf3ff;
 }
 
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   background: var(--color-bg);
   color: var(--color-fg);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
-.dark {
-  --color-bg: #060611;
-  --color-fg: #f5f5f7;
-  --color-muted: #9ca3af;
-  --color-card: rgba(255, 255, 255, 0.04);
-  --color-border: rgba(255, 255, 255, 0.08);
-}
-
 html, body, #root { min-height: 100%; }
-body { background: var(--color-bg); color: var(--color-fg); }
-
-/* Ambient background gradients */
-.aurora {
-  position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0;
+body {
+  background:
+    radial-gradient(60rem 40rem at 85% -10%, #d9f5e0 0%, transparent 60%),
+    radial-gradient(50rem 35rem at -10% 10%, #e3ecff 0%, transparent 60%),
+    var(--color-bg);
+  background-attachment: fixed;
+  color: var(--color-fg);
 }
-.aurora::before, .aurora::after {
-  content: ""; position: absolute; width: 60rem; height: 60rem; border-radius: 9999px;
-  filter: blur(120px); opacity: 0.35;
-}
-.aurora::before { background: radial-gradient(circle, #6366f1, transparent 60%); top: -20rem; left: -15rem; }
-.aurora::after  { background: radial-gradient(circle, #10b981, transparent 60%); bottom: -25rem; right: -20rem; opacity: 0.28; }
 
-/* Glass card */
-.glass {
-  background: color-mix(in oklab, var(--color-card) 90%, transparent);
-  backdrop-filter: blur(20px) saturate(140%);
-  border: 1px solid var(--color-border);
+/* Cards */
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
   border-radius: 1.25rem;
+  box-shadow: 0 10px 30px -18px rgba(22, 48, 92, 0.35);
 }
+.card-lift { transition: transform .25s ease, box-shadow .25s ease; }
+.card-lift:hover { transform: translateY(-4px); box-shadow: 0 22px 45px -22px rgba(22,48,92,.4); }
 
-/* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #a5b4fc 0%, #f0abfc 50%, #6ee7b7 100%);
+  background: linear-gradient(100deg, #2fae4a 0%, #7ed321 55%, #16305c 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 
+/* Buttons */
+.btn-primary {
+  background: linear-gradient(100deg, #2fae4a, #7ed321);
+  color: #06230f;
+  box-shadow: 0 12px 26px -12px rgba(47,174,74,.75);
+}
+.btn-primary:hover { filter: brightness(1.05); }
+.btn-navy { background: var(--color-navy); color: #fff; }
+.btn-navy:hover { background: var(--color-navy-deep); }
+
 /* Range slider */
 input[type="range"].slider {
-  -webkit-appearance: none; appearance: none; width: 100%; height: 6px;
-  background: linear-gradient(to right, #6366f1 var(--val,50%), rgba(148,163,184,0.25) var(--val,50%));
+  -webkit-appearance: none; appearance: none; width: 100%; height: 8px;
+  background: linear-gradient(to right, #2fae4a var(--val,50%), #d7e4dc var(--val,50%));
   border-radius: 999px; outline: none;
 }
 input[type="range"].slider::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%;
-  background: white; border: 2px solid #6366f1;
-  box-shadow: 0 4px 14px rgba(99,102,241,0.4); cursor: pointer;
-  transition: transform 0.15s ease;
+  background: #fff; border: 3px solid #2fae4a;
+  box-shadow: 0 4px 12px rgba(47,174,74,.45); cursor: pointer; transition: transform .15s ease;
 }
-input[type="range"].slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+input[type="range"].slider::-webkit-slider-thumb:hover { transform: scale(1.12); }
 input[type="range"].slider::-moz-range-thumb {
-  width: 24px; height: 24px; border-radius: 50%; background: white; border: 2px solid #6366f1;
-  box-shadow: 0 4px 14px rgba(99,102,241,0.4); cursor: pointer;
+  width: 24px; height: 24px; border-radius: 50%; background: #fff; border: 3px solid #2fae4a; cursor: pointer;
 }
 
-/* Pulse CTA */
 @keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 rgba(139,92,246,0.55); }
-  70% { box-shadow: 0 0 0 14px rgba(139,92,246,0); }
-  100% { box-shadow: 0 0 0 0 rgba(139,92,246,0); }
+  0% { box-shadow: 0 0 0 0 rgba(47,174,74,.5); }
+  70% { box-shadow: 0 0 0 14px rgba(47,174,74,0); }
+  100% { box-shadow: 0 0 0 0 rgba(47,174,74,0); }
 }
 .pulse-cta { animation: pulse-ring 2.2s infinite; }
 
-/* Marquee */
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .marquee-track { display: flex; width: max-content; animation: marquee 30s linear infinite; }
 
-/* Fade / rise */
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-.rise { animation: rise 0.6s ease-out both; }
+.rise { animation: rise .6s ease-out both; }
 
-/* Accordion */
 details.acc[open] summary .chev { transform: rotate(180deg); }
 details.acc summary::-webkit-details-marker { display: none; }
-details.acc .acc-content {
-  max-height: 0; overflow: hidden;
-  transition: max-height 0.35s ease;
-}
+details.acc .acc-content { max-height: 0; overflow: hidden; transition: max-height .35s ease; }
 details.acc[open] .acc-content { max-height: 400px; }
 
-/* Spin */
 @keyframes spin { to { transform: rotate(360deg); } }
-.spin { animation: spin 0.9s linear infinite; }
+.spin { animation: spin .9s linear infinite; }
 
-/* Checkmark draw */
 @keyframes draw { to { stroke-dashoffset: 0; } }
-.check-path { stroke-dasharray: 60; stroke-dashoffset: 60; animation: draw 0.6s ease-out forwards; }
+.check-path { stroke-dasharray: 60; stroke-dashoffset: 60; animation: draw .6s ease-out forwards; }
