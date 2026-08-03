@@ -66,14 +66,14 @@ function ClientDashboard() {
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-black">{money(a.amount)}</span>
-                      <span className="text-xs text-[color:var(--color-muted)]">· {a.term} months · {a.purpose}</span>
+                      <span className="text-xs text-[color:var(--color-muted)]">· {a.term} months · {a.productTitle ?? a.purpose}</span>
                     </div>
                     <div className="mt-1 text-xs text-[color:var(--color-muted)]">
                       {a.id} · service fee {money(a.serviceFee)} ({a.serviceFeePct}%) via {a.provider}
                     </div>
                     <div className="mt-1 text-xs text-[color:var(--color-muted)]">
-                      Principal {money(a.amount)} · interest {money(computeLoan(a.amount, a.serviceFeePct, a.term).interest)} · total repayment{" "}
-                      <span className="font-bold text-[color:var(--color-fg)]">{money(computeLoan(a.amount, a.serviceFeePct, a.term).totalRepayment)}</span>
+                      Principal {money(a.amount)} · interest {money(computeLoan(a.amount, a.serviceFeePct, a.term, a.interestRate).interest)} · total repayment{" "}
+                      <span className="font-bold text-[color:var(--color-fg)]">{money(computeLoan(a.amount, a.serviceFeePct, a.term, a.interestRate).totalRepayment)}</span>
                     </div>
 
                   </div>
@@ -94,7 +94,7 @@ function ClientDashboard() {
                 Array.from({ length: Math.min(a.term, 6) }).map((_, i) => (
                   <li key={a.id + i} className="flex items-center justify-between rounded-xl bg-[color:var(--color-sky)] px-4 py-2.5">
                     <span className="text-[color:var(--color-muted)]">{a.id} · instalment {i + 1}</span>
-                    <span className="font-bold tabular-nums">{money(computeLoan(a.amount, a.serviceFeePct, a.term).monthly)}</span>
+                    <span className="font-bold tabular-nums">{money(computeLoan(a.amount, a.serviceFeePct, a.term, a.interestRate).monthly)}</span>
                   </li>
                 )),
               )}
