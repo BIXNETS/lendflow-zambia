@@ -45,7 +45,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
     if (s === 3) {
       if (!form.provider) e.provider = "Choose a mobile money provider";
       if (!/^[+\d\s()-]{7,}$/.test(form.msisdn)) e.msisdn = "Valid mobile money number required";
-      if (!form.consent) e.consent = "You must authorise the commitment payment";
+      if (!form.consent) e.consent = "You must authorise the service fee payment";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -68,7 +68,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
     setTimeout(() => { saveApplication(app); setStatus("done"); }, 1800);
   };
 
-  const stepTitle = ["Your details", "Loan purpose", "Commitment payment", "Review & submit"][step - 1];
+  const stepTitle = ["Your details", "Loan purpose", "Service fee payment", "Review & submit"][step - 1];
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-6">
@@ -94,7 +94,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
         <div className="max-h-[70vh] overflow-y-auto px-6 py-6">
           {status === "processing" && <ProcessingView />}
           {status === "done" && (
-            <SuccessView commitment={loan.commitment} onDashboard={() => { onClose(); navigate({ to: "/dashboard" }); }} />
+            <SuccessView service fee={loan.commitment} onDashboard={() => { onClose(); navigate({ to: "/dashboard" }); }} />
           )}
 
           {status === "idle" && step === 1 && (
@@ -137,7 +137,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
           {status === "idle" && step === 3 && (
             <div className="space-y-5">
               <div className="rounded-2xl border border-[color:var(--color-leaf)]/40 bg-[color:var(--color-mint)] p-5">
-                <div className="text-xs font-bold uppercase tracking-widest text-[color:var(--color-leaf-dark)]">Commitment due now</div>
+                <div className="text-xs font-bold uppercase tracking-widest text-[color:var(--color-leaf-dark)]">Service fee due now</div>
                 <div className="mt-1 text-3xl font-black">{money(loan.commitment)}</div>
                 <p className="mt-1 text-xs text-[color:var(--color-muted)]">
                   {loan.pct}% of {money(loan.amount)} — this replaces interest. You repay only {money(loan.amount)}.
@@ -163,7 +163,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                 <input type="checkbox" checked={form.consent} onChange={e => update("consent", e.target.checked)}
                   className="mt-1 h-4 w-4 accent-[color:var(--color-leaf)]" />
                 <span className="text-[color:var(--color-muted)]">
-                  I authorise LendFlow Africa to collect the {money(loan.commitment)} commitment from this wallet, refundable if declined.
+                  I authorise LendFlow Africa to collect the {money(loan.commitment)} service fee from this wallet, refundable if declined.
                 </span>
               </label>
               {errors.consent && <p className="text-sm text-red-600">{errors.consent}</p>}
@@ -178,7 +178,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
                   <ReviewItem label="Amount" value={money(loan.amount)} />
                   <ReviewItem label="Term" value={`${loan.term} mo`} />
                   <ReviewItem label="Interest" value="0%" />
-                  <ReviewItem label="Commitment" value={`${money(loan.commitment)} (${loan.pct}%)`} />
+                  <ReviewItem label="Service fee" value={`${money(loan.commitment)} (${loan.pct}%)`} />
                 </div>
               </div>
               <div className="card p-5">
@@ -208,7 +208,7 @@ export function Wizard({ onClose, loan }: { onClose: () => void; loan: LoanCtx }
               </button>
             ) : (
               <button onClick={submit} className="btn-primary inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold">
-                Pay commitment & submit <CheckCircle2 className="h-4 w-4" />
+                Pay service fee & submit <CheckCircle2 className="h-4 w-4" />
               </button>
             )}
           </div>
@@ -222,7 +222,7 @@ function ProcessingView() {
   return (
     <div className="flex flex-col items-center justify-center py-16">
       <Loader className="spin h-12 w-12 text-[color:var(--color-leaf)]" />
-      <div className="mt-6 text-lg font-bold">Collecting your commitment…</div>
+      <div className="mt-6 text-lg font-bold">Collecting your service fee…</div>
       <div className="mt-1 text-sm text-[color:var(--color-muted)]">Approve the prompt on your phone</div>
     </div>
   );
@@ -236,7 +236,7 @@ function SuccessView({ commitment, onDashboard }: { commitment: number; onDashbo
           <path className="check-path" d="M4 12l5 5 11-11" />
         </svg>
       </div>
-      <div className="mt-5 text-2xl font-black">Commitment of {money(commitment)} received!</div>
+      <div className="mt-5 text-2xl font-black">Service fee of {money(service fee)} received!</div>
       <p className="mt-2 max-w-sm text-sm text-[color:var(--color-muted)]">
         Your application is now with a LendFlow manager. Track its status from your dashboard.
       </p>

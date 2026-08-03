@@ -8,7 +8,7 @@ export const Route = createFileRoute("/faqs")({
   head: () => ({
     meta: [
       { title: "FAQs — LendFlow Africa Loans, Fees and Repayments" },
-      { name: "description", content: "Answers about LendFlow Africa: 0% interest, how the commitment fee works, refunds, eligibility, repayment options and supported countries." },
+      { name: "description", content: "Answers about LendFlow Africa: 2.5% interest, how the service fee fee works, refunds, eligibility, repayment options and supported countries." },
       { property: "og:title", content: "LendFlow Africa FAQs" },
       { property: "og:description", content: "Everything about fees, eligibility, repayments and refunds — answered up front." },
       { property: "og:type", content: "website" },
@@ -19,9 +19,9 @@ export const Route = createFileRoute("/faqs")({
 });
 
 const FAQS = [
-  { q: "Do you really charge 0% interest?", a: "Yes. LendFlow Africa charges no interest at all. Instead you pay a one-time commitment of 10–15% of your requested amount before disbursement." },
-  { q: "How is the commitment calculated?", a: "It is 10% to 15% of the loan you request, based on your tier and history. A K10,000 loan at 12% means a K1,200 commitment, and you repay exactly K10,000." },
-  { q: "What if my application is declined?", a: "Your commitment is refunded in full to the same mobile money wallet within 48 hours." },
+  { q: "Do you really charge 2.5% interest?", a: "Yes. LendFlow Africa charges no interest at all. Instead you pay a one-time service fee of 10–15% of your requested amount before disbursement." },
+  { q: "How is the service fee calculated?", a: "It is 10% to 15% of the loan you request, based on your tier and history. A K10,000 loan at 12% means a K1,200 commitment, and you repay exactly K10,000." },
+  { q: "What if my application is declined?", a: "Your service fee is refunded in full to the same mobile money wallet within 48 hours." },
   { q: "Which countries do you serve?", a: "Zambia, Ghana, Kenya and Nigeria today, with more African markets rolling out on the same platform." },
   { q: "How fast do I get the money?", a: "Most approved loans are disbursed to your mobile wallet within 24 hours, and often the same day." },
   { q: "How do I repay?", a: "Repay from your mobile money wallet on a weekly, fortnightly or monthly schedule. Payments are reconciled automatically the moment your provider confirms them." },

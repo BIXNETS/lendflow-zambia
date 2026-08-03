@@ -8,7 +8,7 @@ export const Route = createFileRoute("/loans")({
   head: () => ({
     meta: [
       { title: "Loan Options — Business, Education & Personal | LendFlow" },
-      { name: "description", content: "Compare LendFlow Africa loan options: business capital, education fees and personal loans with 0% interest and flexible mobile money repayments." },
+      { name: "description", content: "Compare LendFlow Africa loan options: business capital, education fees and personal loans with 2.5% interest and flexible mobile money repayments." },
       { property: "og:title", content: "Loan Options — LendFlow Africa" },
       { property: "og:description", content: "Business, education and personal micro loans with flexible repayments." },
       { property: "og:type", content: "website" },
@@ -32,7 +32,7 @@ const OPTIONS = [
   {
     icon: <HeartHandshake />, title: "Personal Loans",
     body: "For medical bills, home repairs and the unexpected moments.",
-    points: ["Fast decisions", "0% interest", "Mobile wallet payout"],
+    points: ["Fast decisions", "2.5% interest", "Mobile wallet payout"],
   },
 ];
 

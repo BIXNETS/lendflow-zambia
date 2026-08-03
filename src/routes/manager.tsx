@@ -10,7 +10,7 @@ export const Route = createFileRoute("/manager")({
   head: () => ({
     meta: [
       { title: "Manager console — LendFlow Africa" },
-      { name: "description", content: "Review LendFlow Africa loan applications, verify commitment payments and approve 0% interest disbursements." },
+      { name: "description", content: "Review LendFlow Africa loan applications, verify service fee payments and approve 2.5% interest disbursements." },
       { property: "og:title", content: "Manager console — LendFlow Africa" },
       { property: "og:description", content: "Review applications and approve disbursements." },
       { property: "og:type", content: "website" },
@@ -51,13 +51,13 @@ function ManagerDashboard() {
     <AppShell user={user} subtitle="Manager · back office">
       <div className="rise">
         <h1 className="text-3xl font-black tracking-tight">Manager console</h1>
-        <p className="mt-1 text-[color:var(--color-muted)]">Review commitments and release 0% interest loans.</p>
+        <p className="mt-1 text-[color:var(--color-muted)]">Review service fees and release 2.5% interest loans.</p>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <KpiCard label="Pending review" value={String(pending)} tone="sun" />
           <KpiCard label="Total applications" value={String(apps.length)} tone="sky" />
           <KpiCard label="Approved book" value={money(book)} />
-          <KpiCard label="Commitments collected" value={money(fees)} tone="sky" />
+          <KpiCard label="Service fees collected" value={money(fees)} tone="sky" />
         </div>
 
         <div className="mt-8 flex flex-wrap gap-2">
@@ -87,7 +87,7 @@ function ManagerDashboard() {
                       {a.id} · {money(a.amount)} over {a.term} months · {a.purpose}
                     </div>
                     <div className="mt-1 text-xs text-[color:var(--color-muted)]">
-                      Commitment {money(a.commitment)} ({a.commitmentPct}%) · {a.provider} {a.msisdn} · {a.email}
+                      Service fee {money(a.commitment)} ({a.commitmentPct}%) · {a.provider} {a.msisdn} · {a.email}
                     </div>
                   </div>
                   <div className="flex shrink-0 flex-wrap gap-2">

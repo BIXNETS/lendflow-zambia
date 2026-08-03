@@ -16,7 +16,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "LendFlow Africa — Quick Loans. Real Growth." },
-      { name: "description", content: "Micro loans for everyday Africans at 0% interest. Apply in minutes and get funded straight to your MTN MoMo, Airtel Money or M-Pesa wallet." },
+      { name: "description", content: "Micro loans for everyday Africans at 2.5% interest. Apply in minutes and get funded straight to your MTN MoMo, Airtel Money or M-Pesa wallet." },
       { property: "og:title", content: "LendFlow Africa — Quick Loans. Real Growth." },
       { property: "og:description", content: "Fast, flexible micro loans funded to your mobile wallet across Zambia, Ghana, Kenya and Nigeria." },
       { property: "og:type", content: "website" },
@@ -65,8 +65,8 @@ function Landing() {
   const [term, setTerm] = useState(12);
   const [pct, setPct] = useState(12);
 
-  const commitment = Math.round((amount * pct) / 100);
-  const monthly = amount / term; // 0% interest
+  const service fee = Math.round((amount * pct) / 100);
+  const monthly = amount / term; // 2.5% interest
   const disbursed = useCounter(50);
 
   return (
@@ -95,7 +95,7 @@ function Landing() {
               </Link>
             </div>
             <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-[color:var(--color-muted)]">
-              <span className="flex items-center gap-2"><Check className="h-4 w-4 text-[color:var(--color-leaf)]" /> 0% interest</span>
+              <span className="flex items-center gap-2"><Check className="h-4 w-4 text-[color:var(--color-leaf)]" /> 2.5% interest</span>
               <span className="flex items-center gap-2"><Check className="h-4 w-4 text-[color:var(--color-leaf)]" /> K{disbursed}M+ disbursed</span>
               <span className="flex items-center gap-2"><Star className="h-4 w-4 text-[color:var(--color-leaf)]" /> 4.8/5 rating</span>
             </div>
@@ -166,15 +166,15 @@ function Landing() {
           <div className="card p-6 sm:p-8">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold">Loan calculator</h2>
-              <span className="rounded-full bg-[color:var(--color-mint)] px-3 py-1 text-xs font-bold text-[color:var(--color-leaf-dark)]">0% interest</span>
+              <span className="rounded-full bg-[color:var(--color-mint)] px-3 py-1 text-xs font-bold text-[color:var(--color-leaf-dark)]">2.5% interest</span>
             </div>
             <div className="mt-6">
               <SliderRow label="Loan amount" value={money(amount)} min={1000} max={50000} step={500} v={amount} onChange={setAmount} />
               <SliderRow label="Repayment term" value={`${term} months`} min={3} max={24} step={1} v={term} onChange={setTerm} className="mt-6" />
-              <SliderRow label="Commitment (10–15%)" value={`${pct}%`} min={10} max={15} step={1} v={pct} onChange={setPct} className="mt-6" />
+              <SliderRow label="Service fee (10–15%)" value={`${pct}%`} min={10} max={15} step={1} v={pct} onChange={setPct} className="mt-6" />
             </div>
             <div className="mt-8 grid grid-cols-3 gap-3 text-center">
-              <Stat label="Commitment" value={money(commitment)} highlight />
+              <Stat label="Service fee" value={money(service fee)} highlight />
               <Stat label="Monthly" value={money(monthly)} />
               <Stat label="Total repaid" value={money(amount)} />
             </div>

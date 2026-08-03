@@ -76,7 +76,7 @@ function AuthPage() {
             {mode === "signin" ? "Welcome back" : "Create your client account"}
           </h1>
           <p className="mt-1 text-sm text-[color:var(--color-muted)]">
-            {mode === "signin" ? "Managers and clients use the same sign-in." : "Free to join. Apply for 0% interest loans in minutes."}
+            {mode === "signin" ? "Managers and clients use the same sign-in." : "Free to join. Apply for 2.5% interest loans in minutes."}
           </p>
 
           <form onSubmit={submit} className="mt-6 space-y-4">
@@ -127,8 +127,8 @@ function AuthPage() {
             </div>
           </div>
           <div className="card p-6 text-sm text-[color:var(--color-muted)]">
-            New clients: register above, then pay a <strong className="text-[color:var(--color-navy)]">10–15% commitment</strong> to
-            unlock your 0% interest loan.
+            New clients: register above, then pay a <strong className="text-[color:var(--color-navy)]">10–15% service fee</strong> to
+            unlock your 2.5% interest loan.
           </div>
         </div>
       </main>
