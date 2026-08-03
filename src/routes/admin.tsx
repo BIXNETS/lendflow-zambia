@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Loader, Plus, Save, ShieldAlert } from "lucide-react";
+import { Loader, Plus, Save, ShieldAlert, Users } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { SiteNav, SiteFooter } from "@/components/SiteNav";
 import { inputCls } from "@/components/Wizard";
