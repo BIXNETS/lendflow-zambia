@@ -7,14 +7,16 @@ export type SignResult = { ok: true; account: Account } | { ok: false; error: st
 
 /** Make sure a profile row exists for the signed-in user (no auth-schema trigger available). */
 async function ensureProfile(userId: string, meta: Record<string, string>) {
-  const { data: existing } = await supabase.from("profiles").select("id").eq("id", userId).maybeSingle();
+  const { data: existing, error: readError } = await supabase.from("profiles").select("id").eq("id", userId).maybeSingle();
+  if (readError) throw new Error("Could not load your profile.");
   if (existing) return;
-  await supabase.from("profiles").insert({
+  const { error: insertError } = await supabase.from("profiles").insert({
     id: userId,
     first_name: meta.first_name ?? null,
     last_name: meta.last_name ?? null,
     phone: meta.phone ?? null,
   });
+  if (insertError) throw new Error("Could not initialize your profile.");
 }
 
 async function accountFromSession(): Promise<Account | null> {
@@ -24,10 +26,12 @@ async function accountFromSession(): Promise<Account | null> {
 
   await ensureProfile(user.id, (user.user_metadata ?? {}) as Record<string, string>);
 
-  const [{ data: profile }, { data: roles }] = await Promise.all([
+  const [{ data: profile, error: profileError }, { data: roles, error: rolesError }] = await Promise.all([
     supabase.from("profiles").select("first_name,last_name,phone").eq("id", user.id).maybeSingle(),
     supabase.from("user_roles").select("role").eq("user_id", user.id),
   ]);
+  if (profileError) throw new Error("Could not load your profile.");
+  if (rolesError) throw new Error("Could not determine your account access.");
 
 
   const isAdmin = (roles ?? []).some(r => r.role === "admin");
@@ -82,6 +86,22 @@ export async function signOutAccount() {
   await supabase.auth.signOut();
 }
 
+export async function requestPasswordReset(email: string) {
+  const redirectTo = typeof window !== "undefined"
+    ? `${window.location.origin}/reset-password`
+    : undefined;
+  const { error } = await supabase.auth.resetPasswordForEmail(
+    email.trim().toLowerCase(),
+    { redirectTo },
+  );
+  return error ? { ok: false as const, error: error.message } : { ok: true as const };
+}
+
+export async function updateAccountPassword(password: string) {
+  const { error } = await supabase.auth.updateUser({ password });
+  return error ? { ok: false as const, error: error.message } : { ok: true as const };
+}
+
 export async function getAccount(): Promise<Account | null> {
   return accountFromSession();
 }
@@ -89,18 +109,57 @@ export async function getAccount(): Promise<Account | null> {
 /** Client-side hook: null while loading, then the signed-in account or false. */
 export function useAccount() {
   const [account, setAccount] = useState<Account | null | undefined>(undefined);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     let alive = true;
-    getAccount().then(a => alive && setAccount(a));
+    let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+    const load = () => getAccount()
+      .then(a => { if (alive) { setAccount(a); setError(""); } })
+      .catch(cause => { if (alive) { setAccount(null); setError(cause instanceof Error ? cause.message : "Could not load your account."); } });
+    void load();
+    const scheduleRefresh = async () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      const { data } = await supabase.auth.getSession();
+      const expiresAt = data.session?.expires_at;
+      if (!expiresAt || !alive) return;
+      const delay = Math.max(expiresAt * 1000 - Date.now() - 60_000, 5_000);
+      refreshTimer = setTimeout(async () => {
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        if (!alive) return;
+        if (refreshError) {
+          setAccount(null);
+          setError("Your session expired. Please sign in again.");
+          return;
+        }
+        void load();
+        void scheduleRefresh();
+      }, delay);
+    };
+    void scheduleRefresh();
     const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "TOKEN_REFRESHED") {
+        void scheduleRefresh();
+        void load();
+        return;
+      }
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
-      getAccount().then(a => alive && setAccount(a));
+      void load();
+      void scheduleRefresh();
     });
-    return () => { alive = false; data.subscription.unsubscribe(); };
+    const restore = () => { if (document.visibilityState === "visible") { void load(); void scheduleRefresh(); } };
+    window.addEventListener("online", restore);
+    document.addEventListener("visibilitychange", restore);
+    return () => {
+      alive = false;
+      if (refreshTimer) clearTimeout(refreshTimer);
+      data.subscription.unsubscribe();
+      window.removeEventListener("online", restore);
+      document.removeEventListener("visibilitychange", restore);
+    };
   }, []);
 
-  return { account, loading: account === undefined };
+  return { account, loading: account === undefined, error };
 }
 
 /**
