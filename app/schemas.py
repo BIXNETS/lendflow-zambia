@@ -15,9 +15,18 @@ class UserLoginSchema(BaseModel):
     email: EmailStr
     password: str
 
+class AuthAccountSchema(BaseModel):
+    id: str
+    email: str
+    name: str
+    phone: str
+    role: Literal['customer', 'admin', 'collector']
+
 class TokenSchema(BaseModel):
     access_token: str
+    refresh_token: Optional[str] = None
     token_type: str = "bearer"
+    account: Optional[AuthAccountSchema] = None
 
 # --- PROFILE & KYC SCHEMAS ---
 class ProfileResponse(BaseModel):
